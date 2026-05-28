@@ -19,7 +19,7 @@ export function CoverSlide({ isGroup, isExport, staggerContainer, slideFadeUp })
         </div>
 
         {/* Center "ft. whatsapp" block for high-res export */}
-        <div className="flex flex-col items-center justify-center flex-grow py-8 -translate-y-24">
+        <div className="flex flex-col items-center justify-center flex-grow py-8 -translate-y-10">
           <h1 className="font-sans text-[110px] font-black tracking-tighter text-neutral-900 leading-none text-center">
             ft. <span className="text-[#25D366]">whatsapp</span>
           </h1>
@@ -56,7 +56,7 @@ export function CoverSlide({ isGroup, isExport, staggerContainer, slideFadeUp })
       {/* Center "ft. whatsapp" block for slideshow screen */}
       <motion.div 
         variants={slideFadeUp}
-        className="flex flex-col items-center justify-center flex-grow py-4 -translate-y-16"
+        className="flex flex-col items-center justify-center flex-grow py-4 -translate-y-6"
       >
         <h1 className="font-sans text-5xl sm:text-7xl md:text-[90px] font-black tracking-tighter text-neutral-900 leading-none select-none text-center">
           ft. <span className="text-[#25D366]">whatsapp</span>
