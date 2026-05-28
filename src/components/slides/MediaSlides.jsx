@@ -23,7 +23,7 @@ export function MediaMogulSlide({
           <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
             A picture is worth a thousand words, and your gallery proves it.
           </p>
-          <p className="text-xl font-bold text-[#8B5CF6]/90 mt-2 leading-relaxed">
+          <p className="text-xl font-bold mt-2 leading-relaxed" style={{ color: 'rgba(139, 92, 246, 0.9)' }}>
             Verdict: {results.topMediaMogul?.name || "Someone"} is single-handedly filling up the other person's phone storage with sticker spam.
           </p>
           <div className="space-y-0">
@@ -38,7 +38,7 @@ export function MediaMogulSlide({
 
         {/* PDF Card Slide 11 */}
         {isGroup ? (
-          <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-8 w-full">
+          <div className="rounded-[40px] p-10 shadow-lg space-y-8 w-full border-2" style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderColor: 'rgba(255, 255, 255, 0.4)' }}>
             <div className="flex justify-between items-center text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
               <span>GALLERY SPLIT</span>
               <span className="text-[#0066FF] font-bold">
@@ -68,7 +68,7 @@ export function MediaMogulSlide({
             </div>
           </div>
         ) : (
-          <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-8 w-full">
+          <div className="rounded-[40px] p-10 shadow-lg space-y-8 w-full border-2" style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderColor: 'rgba(255, 255, 255, 0.4)' }}>
             <div className="flex justify-between items-center text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
               <span>GALLERY SPLIT</span>
               <span className="text-[#0066FF] font-extrabold">{mediaPercentA}% vs {mediaPercentB}%</span>
@@ -252,13 +252,13 @@ export function TextMediaRatioSlide({
           {(() => {
             const spammer = results.sendersList.reduce((a, b) => (results.mediaRatios[a] || 0) > (results.mediaRatios[b] || 0) ? a : b, results.sendersList[0] || "Someone");
             return (
-              <p className="text-xl font-bold text-[#8B5CF6]/90 mt-2 leading-relaxed">
+              <p className="text-xl font-bold mt-2 leading-relaxed" style={{ color: 'rgba(139, 92, 246, 0.9)' }}>
                 Verdict: {spammer} prefers pixels over paragraphs. Why type when you can sticker?
               </p>
             );
           })()}
         </div>
-        <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-6 w-full my-auto">
+        <div className="rounded-[40px] p-10 shadow-lg space-y-6 w-full my-auto border-2" style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderColor: 'rgba(255, 255, 255, 0.4)' }}>
           <div className="text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
             MEDIA-TO-TEXT RATIO
           </div>
@@ -358,7 +358,7 @@ export function VoiceNotesSlide({
           <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
             Sometimes typing is too much work. Your audio archives speak volumes.
           </p>
-          <p className="text-xl font-bold text-[#8B5CF6]/90 mt-2 leading-relaxed">
+          <p className="text-xl font-bold mt-2 leading-relaxed" style={{ color: 'rgba(139, 92, 246, 0.9)' }}>
             Verdict: {results.topVoiceNoteSender?.name || "Someone"} should start a podcast instead of sending voice monologues.
           </p>
           <div className="space-y-0">
@@ -373,7 +373,7 @@ export function VoiceNotesSlide({
 
         {/* PDF Card Slide 13 */}
         {isGroup ? (
-          <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-8 w-full">
+          <div className="rounded-[40px] p-10 shadow-lg space-y-8 w-full border-2" style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderColor: 'rgba(255, 255, 255, 0.4)' }}>
             <div className="flex justify-between items-center text-xl font-mono tracking-wider text-purple-600 font-bold uppercase">
               <span>VOICE NOTE SPLIT</span>
               <span className="text-purple-600 font-bold">{results.totalVoiceNotesCount} files</span>
@@ -400,7 +400,7 @@ export function VoiceNotesSlide({
             </div>
           </div>
         ) : (
-          <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-8 w-full">
+          <div className="rounded-[40px] p-10 shadow-lg space-y-8 w-full border-2" style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderColor: 'rgba(255, 255, 255, 0.4)' }}>
             <div className="flex justify-between items-center text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
               <span>VOICE NOTE SPLIT</span>
               <span className="text-purple-600 font-extrabold">
@@ -414,11 +414,11 @@ export function VoiceNotesSlide({
             </div>
 
             <div className="flex justify-between text-2xl font-sans">
-              <div className="flex flex-col">
+              <div className="flex flex-col text-left">
                 <span className="font-semibold text-neutral-800 truncate max-w-[300px]">{senderA}</span>
                 <span className="text-lg text-neutral-500 font-mono mt-1">{(results.voiceNoteCounts[senderA] || 0).toLocaleString()} VN</span>
               </div>
-              <div className="flex flex-col items-end">
+              <div className="flex flex-col items-end text-right">
                 <span className="font-semibold text-neutral-800 truncate max-w-[300px]">{senderB}</span>
                 <span className="text-lg text-neutral-500 font-mono mt-1">{(results.voiceNoteCounts[senderB] || 0).toLocaleString()} VN</span>
               </div>
@@ -426,7 +426,7 @@ export function VoiceNotesSlide({
           </div>
         )}
 
-        <div className="bg-white/90 border border-purple-100 rounded-[32px] p-8 shadow-md flex items-center gap-6 w-full">
+        <div className="rounded-[32px] p-8 shadow-md flex items-center gap-6 w-full border" style={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', borderColor: 'rgba(243, 232, 255, 1)' }}>
           <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center text-3xl text-purple-600 font-bold shrink-0">
             🎙️
           </div>

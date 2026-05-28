@@ -104,7 +104,7 @@ export function VolumeSlide({
         </div>
 
         {isGroup ? (
-          <div className="bg-white/80 backdrop-blur-md border border-white/40 rounded-3xl p-8 shadow-md space-y-6 w-full max-w-[650px] mx-auto">
+          <div className="rounded-3xl p-8 shadow-md space-y-6 w-full max-w-[650px] mx-auto border" style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderColor: 'rgba(255, 255, 255, 0.4)' }}>
             <div className="flex justify-between items-center text-sm font-mono tracking-wider text-neutral-500 font-bold uppercase">
               <span>TOP CONTRIBUTORS</span>
               <span className="text-[#0066FF] font-bold">{results.sendersList.length} members</span>
@@ -131,7 +131,7 @@ export function VolumeSlide({
             </div>
           </div>
         ) : (
-          <div className="bg-white/80 backdrop-blur-md border border-white/40 rounded-3xl p-8 shadow-md space-y-6 w-full max-w-[650px] mx-auto">
+          <div className="rounded-3xl p-8 shadow-md space-y-6 w-full max-w-[650px] mx-auto border" style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderColor: 'rgba(255, 255, 255, 0.4)' }}>
             <div className="flex justify-between items-center text-sm font-mono tracking-wider text-neutral-500 font-bold uppercase">
               <span>MESSAGE SHARE</span>
               <span className="text-[#0066FF] font-extrabold">{percentA}% vs {percentB}%</span>
@@ -279,7 +279,7 @@ export function PeakTrafficSlide({
         </div>
 
         {/* Weekly Rhythm Grid */}
-        <div className="bg-white/80 backdrop-blur-md border border-white/40 rounded-3xl p-8 shadow-md space-y-8 w-full max-w-[650px] mx-auto">
+        <div className="rounded-3xl p-8 shadow-md space-y-8 w-full max-w-[650px] mx-auto border" style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderColor: 'rgba(255, 255, 255, 0.4)' }}>
           <div className="text-sm font-mono tracking-wider text-neutral-500 font-bold uppercase">
             WEEKLY RHYTHM
           </div>
@@ -304,7 +304,7 @@ export function PeakTrafficSlide({
             })}
           </div>
 
-          <div className="flex items-center gap-6 bg-neutral-50/50 p-5 rounded-2xl border border-neutral-100/60">
+          <div className="flex items-center gap-6 p-5 rounded-2xl border" style={{ backgroundColor: 'rgba(245, 245, 245, 0.5)', borderColor: 'rgba(244, 244, 245, 0.6)' }}>
             <div className="w-16 h-16 rounded-2xl bg-neutral-100 flex items-center justify-center text-4xl shadow-inner">
               ⏰
             </div>

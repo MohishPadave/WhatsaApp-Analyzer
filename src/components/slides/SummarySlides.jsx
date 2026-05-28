@@ -56,13 +56,13 @@ export function ChatAuraSlide({
         </div>
 
         {/* Frosted Lens Card */}
-        <div className="bg-white/10 border border-white/20 rounded-[45px] p-12 shadow-2xl z-10 w-[750px] my-auto mx-auto flex flex-col gap-6 text-white" style={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}>
-          <div className="border-b border-white/10 pb-4">
+        <div className="rounded-[45px] p-12 shadow-2xl z-10 w-[750px] my-auto mx-auto flex flex-col gap-6 text-white border" style={{ backgroundColor: 'rgba(255, 255, 255, 0.08)', borderColor: 'rgba(255, 255, 255, 0.2)' }}>
+          <div className="pb-4 border-b" style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}>
             <span className="text-sm font-mono tracking-widest text-[#8B5CF6] font-bold uppercase block">YOUR CHAT AURA</span>
             <h2 className="font-sans text-6xl font-extrabold tracking-tight mt-2 text-white">
               {config.title}
             </h2>
-            <span className="inline-block mt-4 text-xs font-bold uppercase tracking-wider bg-white/10 px-4 py-1.5 rounded-full border border-white/5">
+            <span className="inline-block mt-4 text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full border" style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)', borderColor: 'rgba(255, 255, 255, 0.05)' }}>
               Vibe: {config.vibe}
             </span>
           </div>
@@ -73,12 +73,12 @@ export function ChatAuraSlide({
         </div>
 
         {/* Stats breakdown */}
-        <div className="bg-black/25 rounded-[32px] p-8 border border-white/5 space-y-3 z-10 w-full text-base text-neutral-300 font-sans max-w-[800px]">
-          <div className="flex justify-between items-center border-b pb-3 border-white/5">
+        <div className="rounded-[32px] p-8 border space-y-3 z-10 w-full text-base text-neutral-300 font-sans max-w-[800px]" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)', borderColor: 'rgba(255, 255, 255, 0.05)' }}>
+          <div className="flex justify-between items-center border-b pb-3" style={{ borderColor: 'rgba(255, 255, 255, 0.05)' }}>
             <span className="font-mono uppercase text-xs text-neutral-400 tracking-wider">MIDNIGHT CONVERSATIONS</span>
             <span className="font-mono font-bold text-neutral-100 text-lg">{Math.round(aura.midnightRatio * 100)}% of chat</span>
           </div>
-          <div className="flex justify-between items-center border-b pb-3 border-white/5">
+          <div className="flex justify-between items-center border-b pb-3" style={{ borderColor: 'rgba(255, 255, 255, 0.05)' }}>
             <span className="font-mono uppercase text-xs text-neutral-400 tracking-wider">NOTIFICATION BOMBS</span>
             <span className="font-mono font-bold text-neutral-100 text-lg">{aura.totalBombs} lock-screen spikes</span>
           </div>
@@ -207,7 +207,7 @@ export function HeatmapSlide({
           </div>
 
           {/* Flashback message bubble */}
-          <div className="flex flex-col text-left bg-orange-50/50 rounded-[28px] p-6 border border-orange-100/50">
+          <div className="flex flex-col text-left rounded-[28px] p-6 border" style={{ backgroundColor: 'rgba(255, 247, 237, 0.5)', borderColor: 'rgba(254, 215, 170, 0.5)' }}>
             <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-widest leading-none mb-2">FLASHBACK MESSAGE</span>
             <p className="text-xs font-mono text-neutral-500 uppercase tracking-wider mb-1">{activeMonth?.peakDay?.flashback?.sender || 'N/A'}</p>
             <p className="text-lg font-serif italic leading-snug text-neutral-850">
@@ -218,7 +218,7 @@ export function HeatmapSlide({
 
         {/* Static Bar Chart */}
         <div className="space-y-4 w-full z-20 max-w-[900px] mx-auto">
-          <div className="h-64 flex items-end justify-between gap-3 w-full bg-neutral-900/5 rounded-[36px] p-8 border border-black/5">
+          <div className="h-64 flex items-end justify-between gap-3 w-full rounded-[36px] p-8 border" style={{ backgroundColor: 'rgba(23, 23, 23, 0.05)', borderColor: 'rgba(0, 0, 0, 0.05)' }}>
             {timeline.map((t, idx) => {
               const heightPct = Math.max(10, Math.round((t.totalCount / maxMonthCount) * 100));
               const isActive = idx === maxIdx;
@@ -388,7 +388,7 @@ export function SummarySlide({
         </div>
 
         {/* Summary Table Card */}
-        <div className="border p-12 rounded-[45px] space-y-8 shadow-2xl w-[700px] relative overflow-hidden bg-white/95 z-20" style={{ borderColor: 'rgba(0,0,0,0.02)' }}>
+        <div className="border p-12 rounded-[45px] space-y-8 shadow-2xl w-[700px] relative overflow-hidden z-20" style={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', borderColor: 'rgba(0, 0, 0, 0.02)' }}>
           <div className="absolute top-4 left-4 w-4 h-4 border-t border-l border-neutral-400" />
           <div className="absolute top-4 right-4 w-4 h-4 border-t border-r border-neutral-400" />
           <div className="absolute bottom-4 left-4 w-4 h-4 border-b border-l border-neutral-400" />
