@@ -467,9 +467,14 @@ export function NotificationBomberSlide({
             })}
           </div>
         </div>
-        <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
-          Triggered when a user sends 5 or more rapid-fire messages within a 60-second window before getting a response.
-        </p>
+        <div
+          className="border-2 rounded-[32px] p-8 shadow-md w-full max-w-[800px] mx-auto mt-6"
+          style={{ backgroundColor: 'rgba(255, 255, 255, 0.4)', borderColor: '#F1DCD3' }}
+        >
+          <p className="text-xl font-sans font-light leading-relaxed text-neutral-750 text-center">
+            Triggered when a user sends 5 or more rapid-fire messages within a 60-second window before getting a response.
+          </p>
+        </div>
       </div>
     );
   }
@@ -517,12 +522,15 @@ export function NotificationBomberSlide({
         })}
       </div>
 
-      <motion.p
+      <motion.div
         variants={slideFadeUp}
-        className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8"
+        className="border rounded-2xl p-4 shadow-sm max-w-[280px] mx-auto w-full mb-8"
+        style={{ backgroundColor: 'rgba(255, 255, 255, 0.4)', borderColor: '#F1DCD3' }}
       >
-        Triggered when a user sends 5 or more rapid-fire messages within a 60-second window before getting a response.
-      </motion.p>
+        <p className="text-[10px] font-sans font-light text-neutral-600 leading-relaxed text-center">
+          Triggered when a user sends 5 or more rapid-fire messages within a 60-second window before getting a response.
+        </p>
+      </motion.div>
     </motion.div>
   );
 }

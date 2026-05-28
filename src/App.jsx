@@ -157,7 +157,6 @@ const SLIDE_STYLES = [
           {/* Floating alert cards in background */}
           <rect x="50" y="80" width="220" height="70" rx="16" stroke="#F1DCD3" strokeWidth="4" />
           <rect x="90" y="160" width="220" height="70" rx="16" stroke="#E95D3C" strokeWidth="4" strokeOpacity="0.1" />
-          <rect x="130" y="240" width="220" height="70" rx="16" stroke="#F1DCD3" strokeWidth="4" />
         </svg>
       </div>
     )
