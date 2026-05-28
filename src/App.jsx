@@ -355,9 +355,9 @@ const SLIDE_STYLES = [
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         <svg className="absolute inset-0 w-full h-full opacity-90" viewBox="0 0 360 640" fill="none" xmlns="http://www.w3.org/2000/svg">
           {/* Focus targets */}
-          <circle cx="180" cy="180" r="120" stroke="#F472B6" strokeWidth="10" strokeDasharray="20 10" strokeOpacity="0.25" />
-          <circle cx="180" cy="180" r="80" stroke="#EC4899" strokeWidth="6" strokeOpacity="0.15" />
-          <circle cx="180" cy="180" r="40" stroke="#EC4899" strokeWidth="2" strokeOpacity="0.2" />
+          <circle cx="180" cy="375" r="120" stroke="#F472B6" strokeWidth="10" strokeDasharray="20 10" strokeOpacity="0.25" />
+          <circle cx="180" cy="375" r="80" stroke="#EC4899" strokeWidth="6" strokeOpacity="0.15" />
+          <circle cx="180" cy="375" r="40" stroke="#EC4899" strokeWidth="2" strokeOpacity="0.2" />
         </svg>
       </div>
     )
