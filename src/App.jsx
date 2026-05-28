@@ -944,6 +944,44 @@ function App() {
     setShowNamingModal(false);
   };
 
+  // Helper to inline computed styles recursively onto a cloned node to bypass html2canvas stylesheet issues
+  const inlineComputedStyles = (element) => {
+    const stylesToCopy = [
+      'display', 'flex-direction', 'justify-content', 'align-items', 'flex-grow', 'flex-shrink', 'flex-wrap',
+      'grid-template-columns', 'grid-template-rows', 'grid-column', 'grid-row', 'grid-area',
+      'gap', 'row-gap', 'column-gap',
+      'position', 'top', 'bottom', 'left', 'right', 'z-index',
+      'width', 'min-width', 'max-width', 'height', 'min-height', 'max-height',
+      'padding', 'padding-top', 'padding-bottom', 'padding-left', 'padding-right',
+      'margin', 'margin-top', 'margin-bottom', 'margin-left', 'margin-right',
+      'font-family', 'font-size', 'font-weight', 'line-height', 'text-align', 'text-transform', 'letter-spacing',
+      'color', 'background-color', 'background-image', 'background-size', 'background-position', 'background-repeat',
+      'border', 'border-width', 'border-style', 'border-color',
+      'border-top', 'border-bottom', 'border-left', 'border-right',
+      'border-radius', 'box-shadow', 'opacity', 'transform', 'overflow', 'box-sizing',
+      'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-dasharray', 'stroke-opacity', 'fill-opacity'
+    ];
+
+    const clone = element.cloneNode(true);
+    const originalElements = [element, ...element.querySelectorAll('*')];
+    const clonedElements = [clone, ...clone.querySelectorAll('*')];
+
+    for (let i = 0; i < originalElements.length; i++) {
+      const orig = originalElements[i];
+      const cloned = clonedElements[i];
+
+      const computed = window.getComputedStyle(orig);
+      for (const prop of stylesToCopy) {
+        const val = computed.getPropertyValue(prop);
+        if (val) {
+          cloned.style.setProperty(prop, val);
+        }
+      }
+    }
+
+    return clone;
+  };
+
   // Capture slide high-res JPEG
   const handleDownloadJPEG = async () => {
     const cardElement = document.getElementById('wrapped-summary-card-export');
@@ -960,7 +998,10 @@ function App() {
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       const scale = isMobile ? 2 : 3;
 
-      const canvas = await html2canvas(cardElement, {
+      const clone = inlineComputedStyles(cardElement);
+      cardElement.parentNode.appendChild(clone);
+
+      const canvas = await html2canvas(clone, {
         scale: scale,
         backgroundColor: '#F4F1EA',
         useCORS: true,
@@ -973,6 +1014,8 @@ function App() {
         x: 0,
         y: 0
       });
+
+      clone.parentNode.removeChild(clone);
 
       const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
       const link = document.createElement('a');
@@ -1009,25 +1052,15 @@ function App() {
         setExportMessage(`Capturing slide ${i + 1} of ${totalSlides}...`);
         const slideEl = document.getElementById(`pdf-slide-export-${i}`);
         if (slideEl) {
-          // On mobile, display:none → display:flex inside overflow:hidden
-          // causes the browser to lay out at viewport width, not 1080px.
-          // Fix: position the element off-screen with fixed positioning and
-          // explicit dimensions so the browser renders it at full 1080x1920.
           slideEl.style.display = 'flex';
-          slideEl.style.position = 'fixed';
-          slideEl.style.left = '-9999px';
-          slideEl.style.top = '0';
-          slideEl.style.width = '1080px';
-          slideEl.style.minWidth = '1080px';
-          slideEl.style.height = '1920px';
-          slideEl.style.minHeight = '1920px';
-          slideEl.style.overflow = 'hidden';
-          slideEl.style.zIndex = '-1';
-          await new Promise(r => setTimeout(r, 400));
+          await new Promise(r => setTimeout(r, 450));
+
+          const clone = inlineComputedStyles(slideEl);
+          slideEl.parentNode.appendChild(clone);
 
           const currentStyle = SLIDE_STYLES[pdfSlides[i].styleIndex];
 
-          const canvas = await html2canvas(slideEl, {
+          const canvas = await html2canvas(clone, {
             scale: 2,
             backgroundColor: currentStyle.bg,
             useCORS: true,
@@ -1040,17 +1073,10 @@ function App() {
             y: 0
           });
 
+          clone.parentNode.removeChild(clone);
+
           // Reset element back to hidden
           slideEl.style.display = 'none';
-          slideEl.style.position = '';
-          slideEl.style.left = '';
-          slideEl.style.top = '';
-          slideEl.style.width = '';
-          slideEl.style.minWidth = '';
-          slideEl.style.height = '';
-          slideEl.style.minHeight = '';
-          slideEl.style.overflow = '';
-          slideEl.style.zIndex = '';
 
           const imgData = canvas.toDataURL('image/jpeg', 0.92);
 
