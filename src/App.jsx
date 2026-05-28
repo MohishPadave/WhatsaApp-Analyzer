@@ -155,7 +155,6 @@ const SLIDE_STYLES = [
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         <svg className="absolute bottom-[-100px] left-[-50px] w-[130%] h-[70%] opacity-90" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
           {/* Floating alert cards in background */}
-          <rect x="50" y="80" width="220" height="70" rx="16" stroke="#F1DCD3" strokeWidth="4" />
           <rect x="90" y="160" width="220" height="70" rx="16" stroke="#E95D3C" strokeWidth="4" strokeOpacity="0.1" />
         </svg>
       </div>
