@@ -981,6 +981,52 @@ function App() {
       if (orig.tagName.toLowerCase() === 'svg') {
         cloned.setAttribute('width', '100%');
         cloned.setAttribute('height', '100%');
+
+        // Fail-safe dimensions and offsets for background decoration SVGs if computed layout returns 0px/auto (e.g. mobile optimizations)
+        const className = orig.className?.baseVal || orig.className || '';
+        const widthVal = cloned.style.width;
+        const heightVal = cloned.style.height;
+
+        if (!widthVal || widthVal === 'auto' || parseFloat(widthVal) <= 0) {
+          if (className.includes('w-[120%]')) cloned.style.width = '1296px';
+          else if (className.includes('w-[110%]')) cloned.style.width = '1188px';
+          else if (className.includes('w-[130%]')) cloned.style.width = '1404px';
+          else if (className.includes('w-full')) cloned.style.width = '1080px';
+          else if (className.includes('w-80')) cloned.style.width = '320px';
+        }
+        if (!heightVal || heightVal === 'auto' || parseFloat(heightVal) <= 0) {
+          if (className.includes('h-[60%]')) cloned.style.height = '1152px';
+          else if (className.includes('h-[55%]')) cloned.style.height = '1056px';
+          else if (className.includes('h-[65%]')) cloned.style.height = '1248px';
+          else if (className.includes('h-[70%]')) cloned.style.height = '1344px';
+          else if (className.includes('h-full')) cloned.style.height = '1920px';
+          else if (className.includes('h-80')) cloned.style.height = '320px';
+        }
+
+        // Copy position properties if computed style falls back to auto/0px
+        const positionProps = ['top', 'bottom', 'left', 'right'];
+        for (const prop of positionProps) {
+          const val = cloned.style[prop];
+          if (!val || val === 'auto') {
+            if (prop === 'bottom') {
+              if (className.includes('-bottom-24')) cloned.style.bottom = '-96px';
+              else if (className.includes('-bottom-20')) cloned.style.bottom = '-80px';
+              else if (className.includes('-bottom-16')) cloned.style.bottom = '-64px';
+              else if (className.includes('-bottom-10')) cloned.style.bottom = '-40px';
+              else if (className.includes('bottom-[-100px]')) cloned.style.bottom = '-100px';
+              else if (className.includes('bottom-[-50px]')) cloned.style.bottom = '-50px';
+              else if (className.includes('bottom-[-80px]')) cloned.style.bottom = '-80px';
+            } else if (prop === 'left') {
+              if (className.includes('-left-12')) cloned.style.left = '-48px';
+              else if (className.includes('-left-10')) cloned.style.left = '-40px';
+              else if (className.includes('left-[-50px]')) cloned.style.left = '-50px';
+            } else if (prop === 'right') {
+              if (className.includes('-right-10')) cloned.style.right = '-40px';
+              else if (className.includes('-right-16')) cloned.style.right = '-64px';
+              else if (className.includes('right-[-50px]')) cloned.style.right = '-50px';
+            }
+          }
+        }
       }
     }
 
@@ -1058,7 +1104,13 @@ function App() {
         const slideEl = document.getElementById(`pdf-slide-export-${i}`);
         if (slideEl) {
           slideEl.style.display = 'flex';
-          await new Promise(r => setTimeout(r, 450));
+          
+          // Force style layout calculation and synchronous reflow in browser
+          slideEl.offsetHeight;
+          slideEl.parentNode.offsetHeight;
+
+          // Wait longer for the first slide to completely render offscreen SVGs
+          await new Promise(r => setTimeout(r, i === 0 ? 900 : 450));
 
           const clone = inlineComputedStyles(slideEl);
           slideEl.parentNode.appendChild(clone);
