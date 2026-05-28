@@ -662,12 +662,21 @@ function App() {
       await document.fonts.ready;
       await new Promise(r => setTimeout(r, 600));
 
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const scale = isMobile ? 2 : 3;
+
       const canvas = await html2canvas(cardElement, {
-        scale: 3,
+        scale: scale,
         backgroundColor: '#F4F1EA',
         useCORS: true,
         allowTaint: true,
-        logging: false
+        logging: false,
+        windowWidth: 1080,
+        windowHeight: 1920,
+        width: 1080,
+        height: 1920,
+        x: 0,
+        y: 0
       });
 
       const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
@@ -703,14 +712,20 @@ function App() {
         setExportMessage(`Capturing slide ${i + 1} of 21...`);
         const slideEl = document.getElementById(`pdf-slide-export-${i}`);
         if (slideEl) {
-          slideEl.style.display = 'block';
-          await new Promise(r => setTimeout(r, 150));
+          slideEl.style.display = 'flex';
+          await new Promise(r => setTimeout(r, 300));
 
           const canvas = await html2canvas(slideEl, {
             scale: 2,
             backgroundColor: SLIDE_STYLES[i].bg,
             useCORS: true,
-            logging: false
+            logging: false,
+            windowWidth: 1080,
+            windowHeight: 1920,
+            width: 1080,
+            height: 1920,
+            x: 0,
+            y: 0
           });
 
           slideEl.style.display = 'none';
@@ -3035,7 +3050,22 @@ function App() {
       {/* ------------------------------------------------------------- */}
 
       {results && (
-        <div className="absolute left-[-9999px] top-[-9999px] pointer-events-none">
+        <div
+          style={{
+            position: 'fixed',
+            left: '-9999px',
+            top: '0px',
+            width: '1080px',
+            height: '1920px',
+            minWidth: '1080px',
+            maxWidth: '1080px',
+            minHeight: '1920px',
+            maxHeight: '1920px',
+            overflow: 'hidden',
+            pointerEvents: 'none',
+            zIndex: -1000
+          }}
+        >
 
           {/* 1. HIGH-RESOLUTION INSTAGRAM SUMMARY CARD (1080x1920) */}
           <div
