@@ -9,6 +9,11 @@ export function YapperSlide({
   staggerContainer,
   slideFadeUp
 }) {
+  const initA = results?.initiations?.[senderA] || 0;
+  const initB = results?.initiations?.[senderB] || 0;
+  const bombA = results?.notificationBombs?.[senderA] || 0;
+  const bombB = results?.notificationBombs?.[senderB] || 0;
+
   if (isExport) {
     return (
       <div className="flex flex-col justify-between h-full py-12 text-left w-full">
@@ -22,17 +27,35 @@ export function YapperSlide({
         </div>
 
         <div className="relative w-full h-[700px] my-auto">
-          {/* Decorative black bubble */}
+          {/* Chat starters card (dark) */}
           <div
-            className="w-[330px] h-[250px] border rounded-[70px] absolute right-[100px] bottom-[150px] shadow-md transform rotate-[-6deg]"
-            style={{ backgroundColor: 'rgba(28, 26, 23, 0.08)', borderColor: 'rgba(28, 26, 23, 0.1)' }}
-          />
+            className="w-[380px] h-[280px] absolute right-[60px] bottom-[100px] bg-[#1C1A17] text-white rounded-[70px] p-6 flex flex-col justify-center items-center shadow-2xl z-20 transform rotate-[-6deg]"
+          >
+            <span className="font-sans text-5xl font-extrabold tracking-tight">
+              {initA} vs {initB}
+            </span>
+            <span className="text-base uppercase tracking-wider font-mono opacity-80 text-center leading-tight mt-3 font-bold">
+              chat starters
+            </span>
+            <span className="text-xs uppercase tracking-widest font-sans opacity-70 text-center truncate w-full mt-2">
+              first text after 8+ hour gap
+            </span>
+          </div>
 
-          {/* Decorative blue bubble */}
+          {/* Text bombs card (blue) */}
           <div
-            className="w-[360px] h-[280px] border rounded-[80px] absolute left-[100px] bottom-[50px] shadow-md transform rotate-[4deg]"
-            style={{ backgroundColor: 'rgba(0, 102, 255, 0.1)', borderColor: 'rgba(0, 102, 255, 0.15)' }}
-          />
+            className="w-[390px] h-[290px] absolute left-[60px] bottom-[20px] bg-[#0066FF] text-white rounded-[80px] p-6 flex flex-col justify-center items-center shadow-2xl z-20 transform rotate-[4deg]"
+          >
+            <span className="font-sans text-5xl font-extrabold tracking-tight">
+              {bombA} vs {bombB}
+            </span>
+            <span className="text-base uppercase tracking-wider font-mono opacity-80 text-center leading-tight mt-3 font-bold">
+              text bombs sent
+            </span>
+            <span className="text-xs uppercase tracking-widest font-sans opacity-70 text-center truncate w-full mt-2">
+              bursts of 5+ texts in 1 min
+            </span>
+          </div>
 
           {/* Green bubble */}
           <div className="absolute right-[50px] top-0 w-[420px] h-[300px] bg-[#224535] text-white rounded-[90px] p-8 flex flex-col justify-center items-center shadow-2xl z-20">
@@ -82,8 +105,37 @@ export function YapperSlide({
       </motion.div>
 
       <div className="relative w-full h-[280px] my-auto">
-        <div className="w-[110px] h-[85px] bg-[#1C1A17]/8 border border-[#1C1A17]/10 rounded-[24px] absolute right-6 bottom-16 shadow-sm transform rotate-[-6deg]" />
-        <div className="w-[125px] h-[95px] bg-[#0066FF]/10 border border-[#0066FF]/15 rounded-[28px] absolute left-6 bottom-4 shadow-sm transform rotate-[4deg]" />
+        {/* Chat starters card (dark) */}
+        <motion.div
+          variants={slideFadeUp}
+          className="w-[125px] h-[95px] bg-[#1C1A17] text-white rounded-[24px] absolute right-4 bottom-14 shadow-xl border border-white/5 z-20 p-2 flex flex-col justify-center items-center transform rotate-[-6deg]"
+        >
+          <span className="font-sans text-[18px] font-extrabold tracking-tight">
+            {initA} vs {initB}
+          </span>
+          <span className="text-[7.5px] uppercase tracking-wider font-mono opacity-80 text-center leading-tight mt-1 font-bold">
+            chat starters
+          </span>
+          <span className="text-[6px] uppercase tracking-widest font-sans opacity-70 text-center truncate w-full mt-0.5">
+            starts after 8h gap
+          </span>
+        </motion.div>
+
+        {/* Text bombs card (blue) */}
+        <motion.div
+          variants={slideFadeUp}
+          className="w-[130px] h-[100px] bg-[#0066FF] text-white rounded-[28px] absolute left-4 bottom-2 shadow-xl border border-white/5 z-20 p-2 flex flex-col justify-center items-center transform rotate-[4deg]"
+        >
+          <span className="font-sans text-[18px] font-extrabold tracking-tight">
+            {bombA} vs {bombB}
+          </span>
+          <span className="text-[7.5px] uppercase tracking-wider font-mono opacity-80 text-center leading-tight mt-1 font-bold">
+            text bombs sent
+          </span>
+          <span className="text-[6px] uppercase tracking-widest font-sans opacity-70 text-center truncate w-full mt-0.5">
+            bursts of 5+ texts in 1 min
+          </span>
+        </motion.div>
 
         <motion.div
           variants={slideFadeUp}

@@ -395,7 +395,7 @@ export function HyperFixationSlide({
 }) {
   if (isExport) {
     return (
-      <div className="flex flex-col justify-between h-full py-12 text-left w-full">
+      <div className="relative flex flex-col justify-between h-full py-12 text-left w-full">
         <div className="space-y-8">
           <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
             Your Word Hyper-Fixation Phase: A linguistic spike that disappeared.
@@ -408,7 +408,7 @@ export function HyperFixationSlide({
         </div>
         {results.hyperFixation ? (
           <div
-            className="border rounded-[40px] p-10 shadow-lg z-20 my-auto text-center w-full"
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 border rounded-[40px] p-10 shadow-lg z-20 text-center w-[90%] max-w-[700px]"
             style={{ backgroundColor: 'rgba(255, 255, 255, 0.4)', borderColor: 'rgba(255, 255, 255, 0.2)' }}
           >
             <h3 className="font-mono text-lg uppercase tracking-widest text-neutral-500 font-bold">IN {results.hyperFixation.monthName.toUpperCase()} YOU WENT CRAZY FOR</h3>
@@ -420,7 +420,9 @@ export function HyperFixationSlide({
             </p>
           </div>
         ) : (
-          <p className="text-2xl font-light italic">No hyper-fixations detected.</p>
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center">
+            <p className="text-2xl font-light italic">No hyper-fixations detected.</p>
+          </div>
         )}
         <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
           The single word that had a massive percentage spike in one specific month but virtually disappeared afterward. What happened there?
@@ -434,7 +436,7 @@ export function HyperFixationSlide({
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
-      className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left"
+      className="relative flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left"
     >
       <motion.div variants={slideFadeUp} className="space-y-3">
         <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
@@ -445,20 +447,29 @@ export function HyperFixationSlide({
             Verdict: The word "{results.hyperFixation.word}" was declared the official currency of your relationship.
           </p>
         )}
-        {results.hyperFixation ? (
-          <div className="space-y-0 text-center py-4 bg-white/40 rounded-2xl border border-white/20 p-4 shadow-sm">
-            <h3 className="font-mono text-[10px] uppercase tracking-widest text-neutral-500 font-bold">IN {results.hyperFixation.monthName.toUpperCase()} YOU WENT CRAZY FOR</h3>
-            <h2 className="font-sans text-4xl font-extrabold tracking-tighter text-pink-600 my-2">
-              "{results.hyperFixation.word}"
-            </h2>
-            <p className="text-xs text-neutral-500 font-mono">
-              Used {results.hyperFixation.count} times in one month
-            </p>
-          </div>
-        ) : (
-          <p className="text-xs font-mono text-neutral-500">No hyper-fixations detected.</p>
-        )}
       </motion.div>
+
+      {results.hyperFixation ? (
+        <motion.div
+          variants={slideFadeUp}
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-24px)] max-w-[340px] text-center bg-white/40 rounded-2xl border border-white/20 p-4 shadow-sm z-10 space-y-0"
+        >
+          <h3 className="font-mono text-[10px] uppercase tracking-widest text-neutral-500 font-bold">IN {results.hyperFixation.monthName.toUpperCase()} YOU WENT CRAZY FOR</h3>
+          <h2 className="font-sans text-4xl font-extrabold tracking-tighter text-pink-600 my-2">
+            "{results.hyperFixation.word}"
+          </h2>
+          <p className="text-xs text-neutral-500 font-mono">
+            Used {results.hyperFixation.count} times in one month
+          </p>
+        </motion.div>
+      ) : (
+        <motion.div
+          variants={slideFadeUp}
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center"
+        >
+          <p className="text-xs font-mono text-neutral-500">No hyper-fixations detected.</p>
+        </motion.div>
+      )}
 
       <motion.p
         variants={slideFadeUp}

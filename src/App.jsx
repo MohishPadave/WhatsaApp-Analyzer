@@ -354,9 +354,9 @@ const SLIDE_STYLES = [
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         <svg className="absolute inset-0 w-full h-full opacity-90" viewBox="0 0 360 640" fill="none" xmlns="http://www.w3.org/2000/svg">
           {/* Focus targets */}
-          <circle cx="180" cy="375" r="120" stroke="#F472B6" strokeWidth="10" strokeDasharray="20 10" strokeOpacity="0.25" />
-          <circle cx="180" cy="375" r="80" stroke="#EC4899" strokeWidth="6" strokeOpacity="0.15" />
-          <circle cx="180" cy="375" r="40" stroke="#EC4899" strokeWidth="2" strokeOpacity="0.2" />
+          <circle cx="180" cy="320" r="120" stroke="#F472B6" strokeWidth="10" strokeDasharray="20 10" strokeOpacity="0.25" />
+          <circle cx="180" cy="320" r="80" stroke="#EC4899" strokeWidth="6" strokeOpacity="0.15" />
+          <circle cx="180" cy="320" r="40" stroke="#EC4899" strokeWidth="2" strokeOpacity="0.2" />
         </svg>
       </div>
     )
@@ -467,6 +467,11 @@ function App() {
   const [feedbackIssue, setFeedbackIssue] = useState('');
   const [feedbackStatus, setFeedbackStatus] = useState('idle'); // 'idle' | 'loading' | 'success' | 'error'
   const [feedbackError, setFeedbackError] = useState('');
+
+  const [creatorName, setCreatorName] = useState('');
+  const [recipientName, setRecipientName] = useState('');
+  const [showNamingModal, setShowNamingModal] = useState(false);
+  const [pendingFile, setPendingFile] = useState(null);
 
   const workerRef = useRef(null);
   const progressIntervalRef = useRef(null);
@@ -835,6 +840,29 @@ function App() {
     }
   };
 
+  const triggerNamingPrompt = (selectedFile) => {
+    setPendingFile(selectedFile);
+    setCreatorName('');
+    setRecipientName('');
+    setShowNamingModal(true);
+  };
+
+  const handleNamingSubmit = () => {
+    if (!pendingFile) return;
+    const name = pendingFile.name.toLowerCase();
+    setShowNamingModal(false);
+    if (name.endsWith('.zip') || pendingFile.type === 'application/zip' || pendingFile.type === 'application/x-zip-compressed') {
+      processZipFile(pendingFile);
+    } else {
+      processFile(pendingFile);
+    }
+  };
+
+  const handleNamingCancel = () => {
+    setPendingFile(null);
+    setShowNamingModal(false);
+  };
+
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
@@ -843,10 +871,8 @@ function App() {
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) {
       const name = droppedFile.name.toLowerCase();
-      if (name.endsWith('.txt') || droppedFile.type === 'text/plain') {
-        processFile(droppedFile);
-      } else if (name.endsWith('.zip') || droppedFile.type === 'application/zip' || droppedFile.type === 'application/x-zip-compressed') {
-        processZipFile(droppedFile);
+      if (name.endsWith('.txt') || droppedFile.type === 'text/plain' || name.endsWith('.zip') || droppedFile.type === 'application/zip' || droppedFile.type === 'application/x-zip-compressed') {
+        triggerNamingPrompt(droppedFile);
       } else {
         setError('Please upload a valid .txt or .zip file exported from WhatsApp.');
       }
@@ -858,10 +884,8 @@ function App() {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       const name = selectedFile.name.toLowerCase();
-      if (name.endsWith('.zip') || selectedFile.type === 'application/zip' || selectedFile.type === 'application/x-zip-compressed') {
-        processZipFile(selectedFile);
-      } else if (name.endsWith('.txt') || selectedFile.type === 'text/plain') {
-        processFile(selectedFile);
+      if (name.endsWith('.zip') || selectedFile.type === 'application/zip' || selectedFile.type === 'application/x-zip-compressed' || name.endsWith('.txt') || selectedFile.type === 'text/plain') {
+        triggerNamingPrompt(selectedFile);
       } else {
         setError('Please upload a valid .txt or .zip file exported from WhatsApp.');
       }
@@ -914,6 +938,10 @@ function App() {
     setIsPaused(false);
     setError(null);
     confettiFiredRef.current = false;
+    setCreatorName('');
+    setRecipientName('');
+    setPendingFile(null);
+    setShowNamingModal(false);
   };
 
   // Capture slide high-res JPEG
@@ -1091,6 +1119,92 @@ function App() {
     : { bg: '#050505', text: '#FFFFFF', secondaryText: '#999999', accent: '#0066FF', shapes: null };
 
   const activeSlideId = activeSlides[activeSlide]?.id;
+
+  const renderNamingModal = () => {
+    return (
+      <AnimatePresence>
+        {showNamingModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-[#090D16]/95 border border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl relative text-white"
+            >
+              {/* Cancel Button */}
+              <button
+                onClick={handleNamingCancel}
+                className="absolute top-4 right-4 text-neutral-400 hover:text-white transition-colors duration-200 cursor-pointer bg-transparent border-none"
+                aria-label="Close personalization panel"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                    <span className="material-symbols-outlined">favorite</span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-sans font-bold">Personalize Wrapped</h3>
+                    <p className="text-xs text-neutral-400">Dedicate this retrospection with a custom tag</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-2">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">Made By</label>
+                    <input
+                      type="text"
+                      value={creatorName}
+                      onChange={(e) => setCreatorName(e.target.value)}
+                      placeholder="Your name (e.g. Mohish)"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-sans focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all duration-200 text-white placeholder-neutral-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">For Whom</label>
+                    <input
+                      type="text"
+                      value={recipientName}
+                      onChange={(e) => setRecipientName(e.target.value)}
+                      placeholder="Their name (e.g. Sarah)"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-sans focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all duration-200 text-white placeholder-neutral-500"
+                    />
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={handleNamingCancel}
+                      className="flex-1 py-3 bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-semibold uppercase tracking-wider rounded-xl transition-all active:scale-98 cursor-pointer border-none"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleNamingSubmit}
+                      className="flex-1 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-98 cursor-pointer border-none"
+                    >
+                      Reveal Wrapped
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  };
 
   if (activeSlide === -1 && !isLoading) {
     return (
@@ -1517,6 +1631,7 @@ function App() {
             </div>
           </div>
         )}
+        {renderNamingModal()}
       </div>
     );
   }
@@ -1689,6 +1804,8 @@ function App() {
                         isExport={false}
                         staggerContainer={staggerContainer}
                         slideFadeUp={slideFadeUp}
+                        creatorName={creatorName}
+                        recipientName={recipientName}
                       />
                     )}
 
@@ -2258,6 +2375,8 @@ function App() {
                       isExport={true}
                       staggerContainer={staggerContainer}
                       slideFadeUp={slideFadeUp}
+                      creatorName={creatorName}
+                      recipientName={recipientName}
                     />
                   )}
 
@@ -2635,6 +2754,9 @@ function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Personalization Naming Modal */}
+      {renderNamingModal()}
     </div>
   );
 }

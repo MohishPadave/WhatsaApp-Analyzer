@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 
-export function CoverSlide({ isGroup, isExport, staggerContainer, slideFadeUp }) {
+export function CoverSlide({ isGroup, isExport, staggerContainer, slideFadeUp, creatorName, recipientName }) {
   if (isExport) {
     return (
       <div className="flex flex-col justify-between h-full py-12 text-left">
@@ -20,14 +20,21 @@ export function CoverSlide({ isGroup, isExport, staggerContainer, slideFadeUp })
 
         {/* Center "ft. whatsapp" block for high-res export */}
         <div className="flex flex-col items-center justify-center flex-grow py-8 -translate-y-10">
-          <h1 className="font-sans text-[110px] font-black tracking-tighter text-neutral-900 leading-none text-center">
+          {(creatorName || recipientName) && (
+            <p className="text-xl font-mono text-neutral-500 tracking-wide font-medium text-center mb-4">
+              ❤️ Made with love {creatorName ? `by ${creatorName}` : ''}{recipientName ? ` for ${recipientName}` : ''}
+            </p>
+          )}
+          <h1 className="font-sans text-[80px] font-black tracking-tighter text-neutral-900 leading-none text-center">
             ft. <span className="text-[#25D366]">whatsapp</span>
           </h1>
         </div>
 
-        <p className="text-xl font-sans font-light text-neutral-600 leading-relaxed max-w-[650px] mb-12">
-          Unpack the reply logs, dialogue volumes, and habits that defined your {isGroup ? 'group chat' : 'chat thread'} this year.
-        </p>
+        <div className="mb-12 space-y-4">
+          <p className="text-xl font-sans font-light text-neutral-600 leading-relaxed max-w-[650px]">
+            Unpack the reply logs, dialogue volumes, and habits that defined your {isGroup ? 'group chat' : 'chat thread'} this year.
+          </p>
+        </div>
       </div>
     );
   }
@@ -58,17 +65,21 @@ export function CoverSlide({ isGroup, isExport, staggerContainer, slideFadeUp })
         variants={slideFadeUp}
         className="flex flex-col items-center justify-center flex-grow py-4 -translate-y-6"
       >
-        <h1 className="font-sans text-5xl sm:text-7xl md:text-[90px] font-black tracking-tighter text-neutral-900 leading-none select-none text-center">
+        {(creatorName || recipientName) && (
+          <p className="text-[10px] font-mono text-neutral-500 tracking-wide font-semibold text-center mb-2">
+            ❤️ Made with love {creatorName ? `by ${creatorName}` : ''}{recipientName ? ` for ${recipientName}` : ''}
+          </p>
+        )}
+        <h1 className="font-sans text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter text-neutral-900 leading-none select-none text-center">
           ft. <span className="text-[#25D366]">whatsapp</span>
         </h1>
       </motion.div>
 
-      <motion.p
-        variants={slideFadeUp}
-        className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8"
-      >
-        Unpack the reply logs, dialogue volumes, and habits that defined your {isGroup ? 'group chat' : 'chat thread'} this year.
-      </motion.p>
+      <motion.div variants={slideFadeUp} className="mb-8 space-y-2">
+        <p className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px]">
+          Unpack the reply logs, dialogue volumes, and habits that defined your {isGroup ? 'group chat' : 'chat thread'} this year.
+        </p>
+      </motion.div>
     </motion.div>
   );
 }
@@ -155,7 +166,7 @@ export function VolumeSlide({
           </div>
         )}
 
-        <p className="text-xl font-sans font-light text-neutral-600 leading-relaxed max-w-[650px] mb-12">
+        <p className="text-xl font-sans font-light text-neutral-600 leading-relaxed max-w-[650px] mb-3">
           Exchanged over <span className="font-semibold text-neutral-800">{results.longevityDays} days</span> of chatting. That's a total word count of <span className="font-semibold text-neutral-800">{results.totalWordCount.toLocaleString()}</span> words!
         </p>
       </div>
@@ -243,7 +254,7 @@ export function VolumeSlide({
 
       <motion.p
         variants={slideFadeUp}
-        className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8"
+        className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-1"
       >
         Exchanged over <span className="font-semibold text-neutral-800">{results.longevityDays} days</span> of chatting. That's a total word count of <span className="font-semibold text-neutral-800">{results.totalWordCount.toLocaleString()}</span> words!
       </motion.p>
