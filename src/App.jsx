@@ -1166,7 +1166,7 @@ function App() {
                       value={creatorName}
                       onChange={(e) => setCreatorName(e.target.value)}
                       placeholder="Your name (e.g. Mohish)"
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-sans focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all duration-200 text-white placeholder-neutral-500"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[16px] md:text-sm font-sans focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all duration-200 text-white placeholder-neutral-500"
                     />
                   </div>
 
@@ -1177,7 +1177,7 @@ function App() {
                       value={recipientName}
                       onChange={(e) => setRecipientName(e.target.value)}
                       placeholder="Their name (e.g. Sarah)"
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-sans focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all duration-200 text-white placeholder-neutral-500"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[16px] md:text-sm font-sans focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all duration-200 text-white placeholder-neutral-500"
                     />
                   </div>
 
@@ -2698,7 +2698,7 @@ function App() {
                         value={feedbackName}
                         onChange={(e) => setFeedbackName(e.target.value)}
                         placeholder="Your name"
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-sans focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all duration-200 text-white placeholder-neutral-500"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[16px] md:text-sm font-sans focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all duration-200 text-white placeholder-neutral-500"
                       />
                     </div>
 
@@ -2710,7 +2710,7 @@ function App() {
                         value={feedbackEmail}
                         onChange={(e) => setFeedbackEmail(e.target.value)}
                         placeholder="you@example.com"
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-sans focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all duration-200 text-white placeholder-neutral-500"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[16px] md:text-sm font-sans focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all duration-200 text-white placeholder-neutral-500"
                       />
                     </div>
 
@@ -2722,7 +2722,7 @@ function App() {
                         value={feedbackIssue}
                         onChange={(e) => setFeedbackIssue(e.target.value)}
                         placeholder="Describe the issues or improvements..."
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-sans focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all duration-200 text-white placeholder-neutral-500 resize-none"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[16px] md:text-sm font-sans focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all duration-200 text-white placeholder-neutral-500 resize-none"
                       />
                     </div>
 
