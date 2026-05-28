@@ -979,11 +979,8 @@ function App() {
 
       // Ensure inline SVGs have explicit width and height attributes for html2canvas
       if (orig.tagName.toLowerCase() === 'svg') {
-        const rect = orig.getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0) {
-          cloned.setAttribute('width', rect.width.toString());
-          cloned.setAttribute('height', rect.height.toString());
-        }
+        cloned.setAttribute('width', '100%');
+        cloned.setAttribute('height', '100%');
       }
     }
 
