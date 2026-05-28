@@ -1,0 +1,149 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  
+  --color-luxury-black: #050505;
+  --color-luxury-dark: #0F0F0F;
+  --color-luxury-gray: #1E1E1E;
+  --color-luxury-light-gray: #2D2D2D;
+  --color-luxury-white: #F5F5F7;
+  --color-luxury-dim: #999999;
+  --color-luxury-gold: #D4AF37;
+
+  /* Spec Landing Page Theme Colors */
+  --color-on-error-container: #93000a;
+  --color-surface-container-high: #e7e8e9;
+  --color-secondary-fixed-dim: #ffb59d;
+  --color-on-secondary: #ffffff;
+  --color-on-primary-fixed: #002109;
+  --color-primary-fixed-dim: #3de273;
+  --color-outline: #6c7b6b;
+  --color-secondary-container: #fe6a34;
+  --color-surface-container-highest: #e1e3e4;
+  --color-surface-bright: #f8f9fa;
+  --color-on-tertiary-container: #0634c7;
+  --color-on-error: #ffffff;
+  --color-on-secondary-container: #5d1900;
+  --color-inverse-primary: #3de273;
+  --color-tertiary-fixed-dim: #bac3ff;
+  --color-surface: #f8f9fa;
+  --color-outline-variant: #bbcbb9;
+  --color-tertiary-container: #a7b4ff;
+  --color-on-surface: #191c1d;
+  --color-primary-fixed: #66ff8e;
+  --color-surface-tint: #006d2f;
+  --color-surface-container-lowest: #ffffff;
+  --color-on-tertiary: #ffffff;
+  --color-primary-container: #25d366;
+  --color-surface-container: #edeeef;
+  --color-on-primary-fixed-variant: #005322;
+  --color-on-secondary-fixed: #390c00;
+  --color-surface-variant: #e1e3e4;
+  --color-error: #ba1a1a;
+  --color-surface-dim: #d9dadb;
+  --color-inverse-on-surface: #f0f1f2;
+  --color-on-primary: #ffffff;
+  --color-on-surface-variant: #3c4a3d;
+  --color-on-secondary-fixed-variant: #832600;
+  --color-surface-container-low: #f3f4f5;
+  --color-tertiary-fixed: #dee1ff;
+  --color-primary: #006d2f;
+  --color-secondary: #ab3500;
+  --color-background: #f8f9fa;
+  --color-on-tertiary-fixed: #001159;
+  --color-inverse-surface: #2e3132;
+  --color-error-container: #ffdad6;
+  --color-on-primary-container: #005523;
+  --color-on-background: #191c1d;
+  --color-tertiary: #2e4edc;
+
+  /* Custom Font Families */
+  --font-headline-lg: 'Playfair Display', serif;
+  --font-display-lg: 'Playfair Display', serif;
+  --font-label-bold: 'Plus Jakarta Sans', sans-serif;
+  --font-headline-md: 'Playfair Display', serif;
+  --font-headline-lg-mobile: 'Playfair Display', serif;
+  --font-body-lg: 'Plus Jakarta Sans', sans-serif;
+  --font-body-md: 'Plus Jakarta Sans', sans-serif;
+
+  /* Custom Spacing */
+  --spacing-section-gap: 120px;
+  --spacing-container-max: 1200px;
+  --spacing-unit: 8px;
+  --spacing-gutter: 24px;
+  --spacing-margin-mobile: 20px;
+
+  /* Custom Animation */
+  --animate-gradient: gradient 15s ease infinite;
+
+  @keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+}
+
+/* Custom CSS Helpers */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+.glass-nav {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+.confetti-glow {
+  filter: blur(80px);
+  z-index: -1;
+}
+.animated-gradient {
+  background: linear-gradient(-45deg, #25d366, #3de273, #fe6a34, #2e4edc);
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
+}
+
+/* Global resets for the quiet luxury theme */
+html, body {
+  background-color: var(--color-luxury-black);
+  color: var(--color-luxury-white);
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Remove default container styling of boilerplate */
+#root {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  border-inline: none;
+  min-height: 100vh;
+}
+
+/* Modern minimalist scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-luxury-black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-luxury-gray);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-luxury-light-gray);
+}
