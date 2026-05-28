@@ -290,28 +290,42 @@ export function SpeedRacerSlide({
       const tB = times[b] || Infinity;
       return tA < tB ? a : b;
     }, senders[0] || "Someone");
+    const fastTime = times[fastReplier] || 0;
     
     return (
       <div className="flex flex-col justify-between h-full py-12 text-left w-full">
-        <div className="space-y-8">
-          <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
+        <div className="space-y-6">
+          <p className="text-[44px] font-sans font-semibold leading-[1.2] max-w-[850px] text-neutral-800">
             The Response Hierarchy: Who is the Speed Racer and who is the Snail?
           </p>
-          <p className="text-xl font-bold text-[#8B5CF6]/90 mt-2 leading-relaxed">
+          <p className="text-[28px] font-bold text-[#8B5CF6]/90 mt-2 leading-relaxed max-w-[800px]">
             Verdict: {fastReplier} replies at lightning speed, while others take business days.
           </p>
         </div>
-        <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-8 w-full my-auto">
-          <div className="text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
+
+        {/* Hero time display */}
+        <div className="flex items-center justify-center my-6">
+          <div className="bg-[#1C3B24] text-white rounded-[50px] px-16 py-10 shadow-2xl flex flex-col items-center">
+            <span className="text-[72px] font-sans font-extrabold tracking-tight leading-none">
+              {fastTime > 0 ? formatDuration(fastTime * 1000) : "N/A"}
+            </span>
+            <span className="text-[22px] uppercase tracking-[0.2em] font-mono opacity-80 mt-4">
+              ⚡ {fastReplier}'s median reply
+            </span>
+          </div>
+        </div>
+
+        <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-12 shadow-lg space-y-8 w-full max-w-[850px]">
+          <div className="text-[24px] font-mono tracking-wider text-neutral-500 font-bold uppercase">
             MEDIAN RESPONSE TIMES
           </div>
           <div className="space-y-6">
             {results.sendersList.slice(0, 3).map((sender) => {
               const time = results.medianResponseTimes[sender] || 0;
               return (
-                <div key={sender} className="flex justify-between items-center text-2xl font-semibold text-neutral-800 border-b pb-4 border-neutral-100">
-                  <span className="truncate max-w-[450px]">{sender}</span>
-                  <span className="font-mono text-xl font-bold text-neutral-500">
+                <div key={sender} className="flex justify-between items-center text-[30px] font-semibold text-neutral-800 border-b pb-5 border-neutral-200">
+                  <span className="truncate max-w-[480px]">{sender}</span>
+                  <span className="font-mono text-[26px] font-bold text-neutral-500">
                     {time > 0 ? formatDuration(time * 1000) : "N/A"}
                   </span>
                 </div>
@@ -319,8 +333,8 @@ export function SpeedRacerSlide({
             })}
           </div>
         </div>
-        <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
-          Calculated during active hours (9 AM - 10 PM) for response delays under 6 hours.
+        <p className="text-[24px] font-sans font-light leading-relaxed max-w-[800px] text-neutral-500 mt-4">
+          Calculated during active hours (9 AM – 10 PM) for response delays under 6 hours.
         </p>
       </div>
     );

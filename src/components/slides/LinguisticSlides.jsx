@@ -151,45 +151,62 @@ export function SlangCorporateSlide({
   slideFadeUp
 }) {
   if (isExport) {
+    const slangKing = results.sendersList.reduce((a, b) => (results.slangCounts[a] || 0) > (results.slangCounts[b] || 0) ? a : b, results.sendersList[0] || "Someone");
+    const corpDictator = results.sendersList.reduce((a, b) => (results.corporateCounts[a] || 0) > (results.corporateCounts[b] || 0) ? a : b, results.sendersList[0] || "Someone");
+    const totalSlang = Object.values(results.slangCounts || {}).reduce((a, b) => a + b, 0);
+    const totalCorp = Object.values(results.corporateCounts || {}).reduce((a, b) => a + b, 0);
+
     return (
       <div className="flex flex-col justify-between h-full py-12 text-left w-full">
-        <div className="space-y-8">
-          <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
+        <div className="space-y-6">
+          <p className="text-[44px] font-sans font-semibold leading-[1.2] max-w-[850px] text-neutral-800">
             Slang Lord vs. Corporate Dictator: Who writes like they are cold-emailing KPMG?
           </p>
-          {(() => {
-            const corpDictator = results.sendersList.reduce((a, b) => (results.corporateCounts[a] || 0) > (results.corporateCounts[b] || 0) ? a : b, results.sendersList[0] || "Someone");
-            return (
-              <p className="text-xl font-bold text-[#8B5CF6]/90 mt-2 leading-relaxed">
-                Verdict: {corpDictator} is 8.8x more likely to send a perfectly formatted email disguised as a text.
-              </p>
-            );
-          })()}
+          <p className="text-[28px] font-bold text-[#8B5CF6]/90 mt-2 leading-relaxed max-w-[800px]">
+            Verdict: {corpDictator} is 8.8x more likely to send a perfectly formatted email disguised as a text.
+          </p>
         </div>
-        <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-6 w-full my-auto">
-          <div className="text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase block mb-1">DIALECT BREAKDOWN</div>
-          <div className="grid grid-cols-2 gap-8">
-            <div className="space-y-4 border-r pr-4 border-neutral-100">
-              <span className="text-lg font-mono font-bold text-yellow-600 uppercase">💬 SLANG TERMS</span>
+
+        {/* Hero comparison display */}
+        <div className="flex items-center justify-center gap-8 my-6">
+          <div className="bg-yellow-500/15 border-2 border-yellow-500/30 rounded-[40px] px-12 py-8 shadow-lg flex flex-col items-center flex-1">
+            <span className="text-[64px] leading-none">💬</span>
+            <span className="text-[56px] font-sans font-extrabold tracking-tight text-yellow-700 mt-2">{totalSlang}</span>
+            <span className="text-[20px] uppercase tracking-[0.15em] font-mono text-yellow-600 font-bold mt-2">SLANG TERMS</span>
+            <span className="text-[18px] font-sans text-neutral-500 mt-1 truncate max-w-[300px]">👑 {slangKing}</span>
+          </div>
+          <div className="bg-blue-500/10 border-2 border-blue-500/25 rounded-[40px] px-12 py-8 shadow-lg flex flex-col items-center flex-1">
+            <span className="text-[64px] leading-none">💼</span>
+            <span className="text-[56px] font-sans font-extrabold tracking-tight text-blue-700 mt-2">{totalCorp}</span>
+            <span className="text-[20px] uppercase tracking-[0.15em] font-mono text-blue-600 font-bold mt-2">CORPORATE TERMS</span>
+            <span className="text-[18px] font-sans text-neutral-500 mt-1 truncate max-w-[300px]">👑 {corpDictator}</span>
+          </div>
+        </div>
+
+        <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-12 shadow-lg space-y-6 w-full max-w-[850px]">
+          <div className="text-[24px] font-mono tracking-wider text-neutral-500 font-bold uppercase block mb-2">DIALECT BREAKDOWN</div>
+          <div className="grid grid-cols-2 gap-10">
+            <div className="space-y-5 border-r pr-6 border-neutral-200">
+              <span className="text-[22px] font-mono font-bold text-yellow-600 uppercase">💬 SLANG TERMS</span>
               {results.sendersList.slice(0, 3).map((sender) => (
-                <div key={sender} className="flex justify-between text-xl text-neutral-700">
-                  <span className="truncate max-w-[200px]">{sender}</span>
+                <div key={sender} className="flex justify-between text-[26px] text-neutral-700">
+                  <span className="truncate max-w-[260px]">{sender}</span>
                   <span className="font-mono font-bold">{results.slangCounts[sender] || 0}</span>
                 </div>
               ))}
             </div>
-            <div className="space-y-4 pl-2">
-              <span className="text-lg font-mono font-bold text-blue-600 uppercase">💼 CORPORATE TERMS</span>
+            <div className="space-y-5 pl-4">
+              <span className="text-[22px] font-mono font-bold text-blue-600 uppercase">💼 CORPORATE TERMS</span>
               {results.sendersList.slice(0, 3).map((sender) => (
-                <div key={sender} className="flex justify-between text-xl text-neutral-700">
-                  <span className="truncate max-w-[200px]">{sender}</span>
+                <div key={sender} className="flex justify-between text-[26px] text-neutral-700">
+                  <span className="truncate max-w-[260px]">{sender}</span>
                   <span className="font-mono font-bold">{results.corporateCounts[sender] || 0}</span>
                 </div>
               ))}
             </div>
           </div>
         </div>
-        <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
+        <p className="text-[24px] font-sans font-light leading-relaxed max-w-[800px] text-neutral-500 mt-4">
           One of you communicates entirely in text slang acronyms (fr, rn, idk). The other ends every message with full punctuation.
         </p>
       </div>

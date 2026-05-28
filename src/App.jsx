@@ -602,29 +602,99 @@ function App() {
   }, []);
 
   // Confetti trigger when first slide appears (only once per file upload)
+  // Uses a dedicated canvas appended to document.body to bypass overflow:hidden on mobile
   useEffect(() => {
     if (activeSlide === 0 && results && !confettiFiredRef.current) {
       confettiFiredRef.current = true;
-      // Fire confetti from left and right corners angled inwards
-      confetti({
-        particleCount: 50,
-        angle: 315, // Angled down-right
-        spread: 55,
-        origin: { x: 0, y: 0 }
+
+      // Create a dedicated full-screen canvas for confetti
+      const canvas = document.createElement('canvas');
+      canvas.style.position = 'fixed';
+      canvas.style.top = '0';
+      canvas.style.left = '0';
+      canvas.style.width = '100vw';
+      canvas.style.height = '100vh';
+      canvas.style.pointerEvents = 'none';
+      canvas.style.zIndex = '99999';
+      // Set actual pixel dimensions for high-DPI / mobile screens
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      document.body.appendChild(canvas);
+
+      // Create a confetti instance bound to our canvas
+      const myConfetti = confetti.create(canvas, { resize: true, useWorker: true });
+
+      // Staggered bursts for a production-grade effect
+      // Burst 1: Left corner
+      myConfetti({
+        particleCount: 60,
+        angle: 315,
+        spread: 60,
+        origin: { x: 0, y: 0 },
+        colors: ['#25d366', '#3de273', '#66ff8e', '#ffffff', '#D4AF37'],
+        ticks: 200,
+        gravity: 0.8,
+        scalar: 1.2,
+        drift: 0.5,
       });
-      confetti({
-        particleCount: 50,
-        angle: 225, // Angled down-left
-        spread: 55,
-        origin: { x: 1, y: 0 }
+      // Burst 2: Right corner
+      myConfetti({
+        particleCount: 60,
+        angle: 225,
+        spread: 60,
+        origin: { x: 1, y: 0 },
+        colors: ['#25d366', '#3de273', '#66ff8e', '#ffffff', '#D4AF37'],
+        ticks: 200,
+        gravity: 0.8,
+        scalar: 1.2,
+        drift: -0.5,
       });
-      // Shower from top-center falling straight down
-      confetti({
-        particleCount: 80,
-        angle: 270, // Straight down
-        spread: 80,
-        origin: { x: 0.5, y: -0.1 }
-      });
+
+      // Burst 3: Delayed center shower
+      setTimeout(() => {
+        myConfetti({
+          particleCount: 100,
+          angle: 270,
+          spread: 100,
+          origin: { x: 0.5, y: -0.05 },
+          colors: ['#25d366', '#3de273', '#66ff8e', '#ffffff', '#fe6a34', '#D4AF37'],
+          ticks: 250,
+          gravity: 1,
+          scalar: 1.1,
+        });
+      }, 150);
+
+      // Burst 4: Second wave for fullness
+      setTimeout(() => {
+        myConfetti({
+          particleCount: 40,
+          angle: 300,
+          spread: 50,
+          origin: { x: 0.15, y: 0 },
+          colors: ['#25d366', '#3de273', '#D4AF37', '#ffffff'],
+          ticks: 180,
+          gravity: 0.9,
+          scalar: 1,
+        });
+        myConfetti({
+          particleCount: 40,
+          angle: 240,
+          spread: 50,
+          origin: { x: 0.85, y: 0 },
+          colors: ['#25d366', '#3de273', '#D4AF37', '#ffffff'],
+          ticks: 180,
+          gravity: 0.9,
+          scalar: 1,
+        });
+      }, 350);
+
+      // Clean up the canvas after all particles have settled
+      setTimeout(() => {
+        if (canvas.parentNode) {
+          canvas.parentNode.removeChild(canvas);
+        }
+      }, 5000);
     }
   }, [activeSlide, results]);
 
@@ -912,8 +982,21 @@ function App() {
         setExportMessage(`Capturing slide ${i + 1} of ${totalSlides}...`);
         const slideEl = document.getElementById(`pdf-slide-export-${i}`);
         if (slideEl) {
+          // On mobile, display:none → display:flex inside overflow:hidden
+          // causes the browser to lay out at viewport width, not 1080px.
+          // Fix: position the element off-screen with fixed positioning and
+          // explicit dimensions so the browser renders it at full 1080x1920.
           slideEl.style.display = 'flex';
-          await new Promise(r => setTimeout(r, 300));
+          slideEl.style.position = 'fixed';
+          slideEl.style.left = '-9999px';
+          slideEl.style.top = '0';
+          slideEl.style.width = '1080px';
+          slideEl.style.minWidth = '1080px';
+          slideEl.style.height = '1920px';
+          slideEl.style.minHeight = '1920px';
+          slideEl.style.overflow = 'hidden';
+          slideEl.style.zIndex = '-1';
+          await new Promise(r => setTimeout(r, 400));
 
           const currentStyle = SLIDE_STYLES[pdfSlides[i].styleIndex];
 
@@ -930,7 +1013,18 @@ function App() {
             y: 0
           });
 
+          // Reset element back to hidden
           slideEl.style.display = 'none';
+          slideEl.style.position = '';
+          slideEl.style.left = '';
+          slideEl.style.top = '';
+          slideEl.style.width = '';
+          slideEl.style.minWidth = '';
+          slideEl.style.height = '';
+          slideEl.style.minHeight = '';
+          slideEl.style.overflow = '';
+          slideEl.style.zIndex = '';
+
           const imgData = canvas.toDataURL('image/jpeg', 0.92);
 
           if (i > 0) {
