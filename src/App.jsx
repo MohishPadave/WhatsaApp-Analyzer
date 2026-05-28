@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import JSZip from 'jszip';
 import html2canvas from 'html2canvas-pro';
 import { jsPDF } from 'jspdf';
+import confetti from 'canvas-confetti';
 import {
-  Upload,
   FileText,
   Download,
   RefreshCw,
@@ -14,51 +14,35 @@ import {
   ChevronRight,
   ChevronLeft
 } from 'lucide-react';
+import { formatDuration } from './utils/helpers';
+import {
+  CoverSlide,
+  VolumeSlide,
+  PeakTrafficSlide,
+  YapperSlide,
+  GhosterSlide,
+  SpeedRacerSlide,
+  NotificationBomberSlide,
+  MidnightPhilosopherSlide,
+  InitiatorSlide,
+  ChatCPRSlide,
+  DrySpellSlide,
+  MediaMogulSlide,
+  TextMediaRatioSlide,
+  VoiceNotesSlide,
+  VocabularySlide,
+  SlangCorporateSlide,
+  PanicStationSlide,
+  HyperFixationSlide,
+  ChatAuraSlide,
+  HeatmapSlide,
+  SummarySlide,
+  DeveloperSlide,
+  ThankYouSlide
+} from './components/slides';
 
 const SLIDE_DURATION = 7000; // 7 seconds per slide for reading detailed roasts
 
-function formatDuration(ms) {
-  if (!ms || ms <= 0) return '0 minutes';
-  const seconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-
-  const displayDays = days;
-  const displayHours = hours % 24;
-  const displayMinutes = minutes % 60;
-
-  const parts = [];
-  if (displayDays > 0) parts.push(`${displayDays} day${displayDays > 1 ? 's' : ''}`);
-  if (displayHours > 0) parts.push(`${displayHours} hour${displayHours > 1 ? 's' : ''}`);
-  if (displayMinutes > 0 && parts.length < 2) parts.push(`${displayMinutes} min${displayMinutes > 1 ? 's' : ''}`);
-
-  return parts.join(', ') || 'a few seconds';
-}
-
-function calculateChatAura(results) {
-  if (!results) return null;
-
-  const totalMidnight = results.totalMidnightMessages || 0;
-  const totalMsgs = results.totalMessages || 1;
-  const midnightRatio = totalMidnight / totalMsgs;
-
-  const totalBombs = Object.values(results.notificationBombs || {}).reduce((a, b) => a + b, 0);
-  const totalPanic = Object.values(results.panicCounts || {}).reduce((a, b) => a + b, 0);
-  const panicRatio = totalPanic / totalMsgs;
-
-  let theme = 'balanced';
-  if (midnightRatio > 0.12) {
-    theme = 'midnight';
-  } else if (totalBombs > 15) {
-    theme = 'active';
-  }
-
-  const speedMultiplier = Math.min(3, 1 + (panicRatio * 15));
-  const pulseDuration = Math.max(2.5, 8 / speedMultiplier);
-
-  return { theme, pulseDuration, midnightRatio, totalBombs, panicRatio };
-}
 
 const SLIDE_STYLES = [
   { // Slide 0 (Cover)
@@ -418,6 +402,43 @@ const SLIDE_STYLES = [
         </svg>
       </div>
     )
+  },
+  { // Slide 21 (Optional: Developer Slide / Code Spammer)
+    bg: '#0F172A',
+    text: '#F8FAFC',
+    secondaryText: '#94A3B8',
+    accent: '#38BDF8',
+    shapes: (
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        {/* Futuristic circuit board loops */}
+        <svg className="absolute bottom-[-100px] right-[-50px] w-[110%] h-[55%] opacity-15" viewBox="0 0 350 350" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="200" cy="200" r="120" stroke="#38BDF8" strokeWidth="6" strokeDasharray="10 15" />
+          <circle cx="200" cy="200" r="90" stroke="#38BDF8" strokeWidth="4" strokeDasharray="5 5" />
+          <line x1="200" y1="200" x2="110" y2="110" stroke="#38BDF8" strokeWidth="4" />
+          <rect x="100" y="100" width="20" height="20" fill="#38BDF8" fillOpacity="0.3" />
+          <rect x="140" y="140" width="10" height="10" fill="#38BDF8" fillOpacity="0.3" />
+        </svg>
+      </div>
+    )
+  },
+  { // Slide 22 (Thank You & Feedback Slide)
+    bg: '#090D16', // Ultra deep space blue
+    text: '#F8FAFC',
+    secondaryText: '#94A3B8',
+    accent: '#8B5CF6', // Purple/Violet accent
+    shapes: (
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        {/* Soft glowing circles and intersecting organic lines */}
+        <div className="absolute top-[-20%] left-[-20%] w-[80%] h-[80%] rounded-full bg-violet-600/10 blur-[150px]" />
+        <div className="absolute bottom-[-20%] right-[-20%] w-[80%] h-[80%] rounded-full bg-emerald-600/10 blur-[150px]" />
+        <svg className="absolute inset-0 w-full h-full opacity-10" viewBox="0 0 360 640" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="180" cy="320" r="150" stroke="#8B5CF6" strokeWidth="2" strokeDasharray="8 8" />
+          <circle cx="180" cy="320" r="220" stroke="#10B981" strokeWidth="1" strokeDasharray="4 4" />
+          <path d="M 0 320 Q 180 180 360 320" stroke="#8B5CF6" strokeWidth="2" />
+          <path d="M 0 320 Q 180 460 360 320" stroke="#10B981" strokeWidth="2" />
+        </svg>
+      </div>
+    )
   }
 ];
 
@@ -441,10 +462,114 @@ function App() {
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
 
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackName, setFeedbackName] = useState('');
+  const [feedbackEmail, setFeedbackEmail] = useState('');
+  const [feedbackIssue, setFeedbackIssue] = useState('');
+  const [feedbackStatus, setFeedbackStatus] = useState('idle'); // 'idle' | 'loading' | 'success' | 'error'
+  const [feedbackError, setFeedbackError] = useState('');
+
   const workerRef = useRef(null);
   const progressIntervalRef = useRef(null);
   const holdStartRef = useRef(0);
   const touchStartRef = useRef(null);
+  const confettiFiredRef = useRef(false);
+
+  const activeSlides = useMemo(() => {
+    if (!results) return [];
+
+    const allSlides = [
+      { id: 'cover', styleIndex: 0 },
+      { id: 'volume', styleIndex: 1 },
+      { id: 'peak', styleIndex: 2 },
+      {
+        id: 'yapper',
+        styleIndex: 3,
+        show: results.yapper?.count > 0 && results.yapper?.name
+      },
+      {
+        id: 'ghoster',
+        styleIndex: 4,
+        show: results.theGhoster?.gapMs > 0
+      },
+      {
+        id: 'speedracer',
+        styleIndex: 5,
+        show: Object.values(results.medianResponseTimes || {}).some(t => t > 0)
+      },
+      {
+        id: 'notificationbomber',
+        styleIndex: 6,
+        show: Object.values(results.notificationBombs || {}).some(c => c > 0)
+      },
+      {
+        id: 'midnight',
+        styleIndex: 7,
+        show: results.totalMidnightMessages > 0
+      },
+      {
+        id: 'initiator',
+        styleIndex: 8,
+        show: results.topInitiator?.count > 0 && results.topInitiator?.name
+      },
+      {
+        id: 'cpr',
+        styleIndex: 9,
+        show: Object.values(results.resuscitationCounts || {}).some(c => c > 0)
+      },
+      {
+        id: 'dryspell',
+        styleIndex: 10,
+        show: results.drySpell?.days > 0
+      },
+      {
+        id: 'mediamogul',
+        styleIndex: 11,
+        show: results.topMediaMogul?.count > 0 && results.topMediaMogul?.name
+      },
+      {
+        id: 'textmediaratio',
+        styleIndex: 12,
+        show: Object.values(results.mediaRatios || {}).some(r => r > 0)
+      },
+      {
+        id: 'voicenotes',
+        styleIndex: 13,
+        show: results.totalVoiceNotesCount > 0
+      },
+      {
+        id: 'vocabulary',
+        styleIndex: 14,
+        show: results.vocabulary && Object.values(results.vocabulary).some(arr => arr.length > 0)
+      },
+      {
+        id: 'slangcorporate',
+        styleIndex: 15,
+        show: Object.values(results.slangCounts || {}).some(c => c > 0) || Object.values(results.corporateCounts || {}).some(c => c > 0)
+      },
+      {
+        id: 'panicstation',
+        styleIndex: 16,
+        show: Object.values(results.panicCounts || {}).some(c => c > 0)
+      },
+      {
+        id: 'hyperfixation',
+        styleIndex: 17,
+        show: results.hyperFixation?.count > 0
+      },
+      { id: 'chataura', styleIndex: 18 },
+      { id: 'heatmap', styleIndex: 19 },
+      {
+        id: 'developer',
+        styleIndex: 21,
+        show: results.codeStats?.hasCode
+      },
+      { id: 'summary', styleIndex: 20 },
+      { id: 'thankyou', styleIndex: 22 }
+    ];
+
+    return allSlides.filter(slide => slide.show !== false);
+  }, [results]);
 
   // Initialize Worker
   useEffect(() => {
@@ -464,6 +589,7 @@ function App() {
         setActiveSlide(0); // Start story
         setSlideProgress(0);
         setIsPaused(false);
+        confettiFiredRef.current = false;
       } else if (status === 'error') {
         setIsLoading(false);
         setError(error || 'An error occurred during parsing');
@@ -475,14 +601,42 @@ function App() {
     };
   }, []);
 
+  // Confetti trigger when first slide appears (only once per file upload)
+  useEffect(() => {
+    if (activeSlide === 0 && results && !confettiFiredRef.current) {
+      confettiFiredRef.current = true;
+      // Fire confetti from left and right corners angled inwards
+      confetti({
+        particleCount: 50,
+        angle: 315, // Angled down-right
+        spread: 55,
+        origin: { x: 0, y: 0 }
+      });
+      confetti({
+        particleCount: 50,
+        angle: 225, // Angled down-left
+        spread: 55,
+        origin: { x: 1, y: 0 }
+      });
+      // Shower from top-center falling straight down
+      confetti({
+        particleCount: 80,
+        angle: 270, // Straight down
+        spread: 80,
+        origin: { x: 0.5, y: -0.1 }
+      });
+    }
+  }, [activeSlide, results]);
+
   const handleNextSlide = () => {
     setActiveSlide((prev) => {
-      if (prev < 20) {
+      const maxSlide = activeSlides.length > 0 ? activeSlides.length - 1 : 0;
+      if (prev < maxSlide) {
         setSlideProgress(0);
         return prev + 1;
       } else {
         setIsPaused(true);
-        return 20;
+        return maxSlide;
       }
     });
   };
@@ -497,9 +651,51 @@ function App() {
     });
   };
 
+  const handleFeedbackSubmit = async (e) => {
+    e.preventDefault();
+    if (!feedbackName.trim() || !feedbackEmail.trim() || !feedbackIssue.trim()) {
+      setFeedbackStatus('error');
+      setFeedbackError('Please fill out all fields.');
+      return;
+    }
+
+    setFeedbackStatus('loading');
+    try {
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          access_key: 'c6bf9d1d-641a-4813-aa81-feecea9a15d7',
+          name: feedbackName,
+          email: feedbackEmail,
+          message: feedbackIssue,
+          subject: 'WhatsApp Wrapped - User Feedback'
+        })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setFeedbackStatus('success');
+        setFeedbackName('');
+        setFeedbackEmail('');
+        setFeedbackIssue('');
+      } else {
+        setFeedbackStatus('error');
+        setFeedbackError(data.message || 'Something went wrong. Please try again.');
+      }
+    } catch {
+      setFeedbackStatus('error');
+      setFeedbackError('Failed to submit. Please check your internet connection.');
+    }
+  };
+
   // Story playback timer
   useEffect(() => {
-    if (activeSlide < 0 || activeSlide > 20 || isPaused || isExporting) {
+    const maxSlide = activeSlides.length > 0 ? activeSlides.length - 1 : 0;
+    if (activeSlide < 0 || activeSlide > maxSlide || isPaused || isExporting) {
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
         progressIntervalRef.current = null;
@@ -526,7 +722,8 @@ function App() {
         progressIntervalRef.current = null;
       }
     };
-  }, [activeSlide, isPaused, isExporting]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSlide, isPaused, isExporting, activeSlides]);
 
   // Drag and drop handlers
   const handleDragOver = (e) => {
@@ -647,6 +844,7 @@ function App() {
     setSlideProgress(0);
     setIsPaused(false);
     setError(null);
+    confettiFiredRef.current = false;
   };
 
   // Capture slide high-res JPEG
@@ -708,16 +906,20 @@ function App() {
 
       await document.fonts.ready;
 
-      for (let i = 0; i <= 20; i++) {
-        setExportMessage(`Capturing slide ${i + 1} of 21...`);
+      const pdfSlides = activeSlides.filter(s => s.id !== 'thankyou');
+      const totalSlides = pdfSlides.length;
+      for (let i = 0; i < totalSlides; i++) {
+        setExportMessage(`Capturing slide ${i + 1} of ${totalSlides}...`);
         const slideEl = document.getElementById(`pdf-slide-export-${i}`);
         if (slideEl) {
           slideEl.style.display = 'flex';
           await new Promise(r => setTimeout(r, 300));
 
+          const currentStyle = SLIDE_STYLES[pdfSlides[i].styleIndex];
+
           const canvas = await html2canvas(slideEl, {
             scale: 2,
-            backgroundColor: SLIDE_STYLES[i].bg,
+            backgroundColor: currentStyle.bg,
             useCORS: true,
             logging: false,
             windowWidth: 1080,
@@ -789,30 +991,13 @@ function App() {
   const percentA = Math.round((countA / totalMsgs) * 100);
   const percentB = 100 - percentA;
 
-  // Midnight splits
-  const midA = results?.midnightCounts?.[senderA] || 0;
-  const midB = results?.midnightCounts?.[senderB] || 0;
-  const midTotal = midA + midB || 1;
-  const midPercentA = Math.round((midA / midTotal) * 100);
-  const midPercentB = 100 - midPercentA;
 
-  // Initiation splits
-  const initA = results?.initiations?.[senderA] || 0;
-  const initB = results?.initiations?.[senderB] || 0;
-  const initTotal = initA + initB || 1;
-  const initPercentA = Math.round((initA / initTotal) * 100);
-  const initPercentB = 100 - initPercentA;
 
-  // Media splits
-  const mediaA = results?.mediaCounts?.[senderA] || 0;
-  const mediaB = results?.mediaCounts?.[senderB] || 0;
-  const mediaTotal = mediaA + mediaB || 1;
-  const mediaPercentA = Math.round((mediaA / mediaTotal) * 100);
-  const mediaPercentB = 100 - mediaPercentA;
-
-  const activeStyle = activeSlide >= 0
-    ? SLIDE_STYLES[activeSlide]
+  const activeStyle = (activeSlide >= 0 && activeSlides[activeSlide])
+    ? SLIDE_STYLES[activeSlides[activeSlide].styleIndex]
     : { bg: '#050505', text: '#FFFFFF', secondaryText: '#999999', accent: '#0066FF', shapes: null };
+
+  const activeSlideId = activeSlides[activeSlide]?.id;
 
   if (activeSlide === -1 && !isLoading) {
     return (
@@ -1371,7 +1556,7 @@ function App() {
               </div>
 
               <div className="flex gap-1 w-full z-20 pointer-events-none mb-3">
-                {Array.from({ length: 21 }).map((_, idx) => (
+                {Array.from({ length: activeSlides.length }).map((_, idx) => (
                   <div
                     key={idx}
                     className="h-[3px] flex-grow rounded-full overflow-hidden"
@@ -1405,1547 +1590,274 @@ function App() {
                     className="flex-grow flex flex-col justify-between h-full"
                   >
                     {/* Slide 0: Cover */}
-                    {activeSlide === 0 && (
-                      <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left"
-                      >
-                        <motion.div variants={slideFadeUp} className="space-y-4">
-                          <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
-                            {isGroup ? "Here is your year in review with your group." : "Here is your year in review with your favorite person."}
-                          </p>
-                          <div className="space-y-0">
-                            <h2 className="font-sans text-6xl sm:text-8xl font-extrabold tracking-tighter leading-none text-neutral-900">
-                              2026
-                            </h2>
-                            <p className="text-xs uppercase tracking-widest font-mono text-neutral-500 font-bold mt-1">
-                              Wrapped • Year in Review
-                            </p>
-                          </div>
-                        </motion.div>
-
-                        <motion.p
-                          variants={slideFadeUp}
-                          className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8"
-                        >
-                          Unpack the reply logs, dialogue volumes, and habits that defined your {isGroup ? 'group chat' : 'chat thread'} this year.
-                        </motion.p>
-                      </motion.div>
+                    {activeSlideId === 'cover' && (
+                      <CoverSlide
+                        isGroup={isGroup}
+                        isExport={false}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
                     )}
 
                     {/* Slide 1: Volume & Longevity */}
-                    {activeSlide === 1 && (
-                      <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left"
-                      >
-                        <motion.div variants={slideFadeUp} className="space-y-3">
-                          <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
-                            {isGroup ? "You all connected more than ever before. Every conversation, counted." : "You connected more than ever before. Every conversation, counted."}
-                          </p>
-                          <div className="space-y-0">
-                            <h2 className="font-sans text-5xl sm:text-7xl font-extrabold tracking-tighter leading-none text-neutral-900">
-                              {results.totalMessages.toLocaleString()}
-                            </h2>
-                            <p className="text-xs uppercase tracking-widest font-mono text-neutral-500 font-bold mt-1">
-                              messages exchanged
-                            </p>
-                          </div>
-                        </motion.div>
-
-                        {isGroup ? (
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="bg-white/80 backdrop-blur-md border border-white/40 rounded-2xl p-4 shadow-sm space-y-3.5 z-20 my-auto w-full"
-                          >
-                            <div className="flex justify-between items-center text-[10px] font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                              <span>TOP CONTRIBUTORS</span>
-                              <span className="text-[#0066FF] font-bold">{results.sendersList.length} members</span>
-                            </div>
-
-                            <div className="space-y-2.5">
-                              {results.sendersList.slice(0, 3).map((sender, idx) => {
-                                const count = results.senderCounts[sender] || 0;
-                                const pct = Math.round((count / results.totalMessages) * 100);
-                                const barColors = ['bg-[#0066FF]', 'bg-[#E95D3C]', 'bg-[#10B981]'];
-
-                                return (
-                                  <div key={sender} className="space-y-1">
-                                    <div className="flex justify-between text-xs font-semibold text-neutral-800">
-                                      <span className="truncate max-w-[150px]">{idx + 1}. {sender}</span>
-                                      <span className="font-mono text-[10px] text-neutral-500 font-bold">{count.toLocaleString()} ({pct}%)</span>
-                                    </div>
-                                    <div className="h-2 w-full bg-neutral-100 rounded-full overflow-hidden">
-                                      <div className={`h-full ${barColors[idx] || 'bg-neutral-400'} transition-all`} style={{ width: `${pct}%` }} />
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </motion.div>
-                        ) : (
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="bg-white/80 backdrop-blur-md border border-white/40 rounded-2xl p-4 shadow-sm space-y-3 z-20 my-auto"
-                          >
-                            <div className="flex justify-between items-center text-[10px] font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                              <span>MESSAGE SHARE</span>
-                              <span className="text-[#0066FF] font-extrabold">{percentA}% vs {percentB}%</span>
-                            </div>
-
-                            <div className="h-3 w-full bg-neutral-100 rounded-full overflow-hidden flex">
-                              <div className="h-full bg-[#0066FF] transition-all" style={{ width: `${percentA}%` }} />
-                              <div className="h-full bg-[#E95D3C] transition-all" style={{ width: `${percentB}%` }} />
-                            </div>
-
-                            <div className="flex justify-between text-xs font-sans">
-                              <div className="flex flex-col">
-                                <span className="font-semibold text-neutral-800 truncate max-w-[120px]">{senderA}</span>
-                                <span className="text-[10px] text-neutral-500 font-mono">{countA.toLocaleString()} texts</span>
-                              </div>
-                              <div className="flex flex-col items-end">
-                                <span className="font-semibold text-neutral-800 truncate max-w-[120px]">{senderB}</span>
-                                <span className="text-[10px] text-neutral-500 font-mono">{countB.toLocaleString()} texts</span>
-                              </div>
-                            </div>
-                          </motion.div>
-                        )}
-
-                        <motion.p
-                          variants={slideFadeUp}
-                          className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8"
-                        >
-                          Exchanged over <span className="font-semibold text-neutral-800">{results.longevityDays} days</span> of chatting. That's a total word count of <span className="font-semibold text-neutral-800">{results.totalWordCount.toLocaleString()}</span> words!
-                        </motion.p>
-                      </motion.div>
+                    {activeSlideId === 'volume' && (
+                      <VolumeSlide
+                        isGroup={isGroup}
+                        isExport={false}
+                        results={results}
+                        percentA={percentA}
+                        percentB={percentB}
+                        senderA={senderA}
+                        senderB={senderB}
+                        countA={countA}
+                        countB={countB}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
                     )}
 
                     {/* Slide 2: Peak Traffic */}
-                    {activeSlide === 2 && (
-                      <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left"
-                      >
-                        <motion.div variants={slideFadeUp} className="space-y-3">
-                          <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
-                            Your weekly peak traffic hour when the chat really came alive.
-                          </p>
-                          <div className="space-y-0">
-                            <h2 className="font-sans text-6xl font-extrabold tracking-tighter leading-none text-neutral-900">
-                              {results.peakTraffic.day}s
-                            </h2>
-                            <h2 className="font-sans text-5xl font-extrabold tracking-tighter leading-none" style={{ color: activeStyle.accent }}>
-                              at {results.peakTraffic.hour}
-                            </h2>
-                            <p className="text-xs uppercase tracking-widest font-mono text-neutral-500 font-bold mt-1">
-                              peak connection window
-                            </p>
-                          </div>
-                        </motion.div>
-
-                        {/* Weekly Rhythm Grid */}
-                        <motion.div
-                          variants={slideFadeUp}
-                          className="bg-white/80 backdrop-blur-md border border-white/40 rounded-2xl p-4 shadow-sm space-y-4 z-20 my-auto"
-                        >
-                          <div className="text-[10px] font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                            WEEKLY RHYTHM
-                          </div>
-
-                          <div className="flex justify-between items-center px-1">
-                            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => {
-                              const isActiveDay = results?.peakTraffic?.day?.startsWith(d);
-                              return (
-                                <div key={d} className="flex flex-col items-center gap-1">
-                                  <div
-                                    className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${isActiveDay
-                                        ? 'bg-[#0066FF] text-white shadow-md shadow-blue-500/20 scale-110 ring-2 ring-white/50 animate-pulse'
-                                        : 'bg-neutral-100 text-neutral-400'
-                                      }`}
-                                  >
-                                    {d[0]}
-                                  </div>
-                                  <span className={`text-[8px] font-mono font-bold uppercase ${isActiveDay ? 'text-blue-600 font-extrabold' : 'text-neutral-500'}`}>{d}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-
-                          <div className="flex items-center gap-3 bg-neutral-50/50 p-2.5 rounded-xl border border-neutral-100/60">
-                            <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center text-lg shadow-inner">
-                              ⏰
-                            </div>
-                            <div className="flex flex-col">
-                              <span className="text-xs font-semibold text-neutral-800">Peak Hour: {results?.peakTraffic?.hour}</span>
-                              <span className="text-[10px] text-neutral-500 font-medium">When your chat bursts into life</span>
-                            </div>
-                          </div>
-                        </motion.div>
-
-                        <motion.p
-                          variants={slideFadeUp}
-                          className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8"
-                        >
-                          {results.peakTraffic.text}
-                        </motion.p>
-                      </motion.div>
+                    {activeSlideId === 'peak' && (
+                      <PeakTrafficSlide
+                        isExport={false}
+                        results={results}
+                        activeStyle={activeStyle}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
                     )}
 
                     {/* Slide 3: Speed & The Yapper */}
-                    {activeSlide === 3 && (
-                      <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left"
-                      >
-                        <motion.div variants={slideFadeUp} className="space-y-3">
-                          <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
-                            You amplified others' ideas, but someone usually took the stage.
-                          </p>
-                        </motion.div>
-
-                        <div className="relative w-full h-[280px] my-auto">
-                          {/* Decorative black bubble (behind) */}
-                          <div className="w-[110px] h-[85px] bg-[#1C1A17]/8 border border-[#1C1A17]/10 rounded-[24px] absolute right-6 bottom-16 shadow-sm transform rotate-[-6deg]" />
-
-                          {/* Decorative blue bubble (behind) */}
-                          <div className="w-[125px] h-[95px] bg-[#0066FF]/10 border border-[#0066FF]/15 rounded-[28px] absolute left-6 bottom-4 shadow-sm transform rotate-[4deg]" />
-
-                          {/* Green bubble (top right) */}
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="absolute right-2 top-0 w-[140px] h-[105px] bg-[#224535] text-white rounded-[30px] p-3 flex flex-col justify-center items-center shadow-xl border border-white/5 z-20"
-                          >
-                            <span className="font-sans text-3xl font-extrabold tracking-tight">
-                              {(results.doubleTexter[senderA] || 1.0).toFixed(1)} vs {(results.doubleTexter[senderB] || 1.0).toFixed(1)}
-                            </span>
-                            <span className="text-[9px] uppercase tracking-wider font-mono opacity-80 text-center leading-tight mt-1">
-                              avg texts/turn
-                            </span>
-                          </motion.div>
-
-                          {/* Orange bubble (mid left) */}
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="absolute left-2 top-10 w-[145px] h-[110px] bg-[#E95D3C] text-white rounded-[32px] p-3 flex flex-col justify-center items-center shadow-xl border border-white/5 z-20"
-                          >
-                            <span className="font-sans text-4xl font-extrabold tracking-tight">
-                              {results.yapper.count}
-                            </span>
-                            <span className="text-[9px] uppercase tracking-wider font-mono opacity-80 text-center leading-tight mt-1 font-bold">
-                              consecutive messages
-                            </span>
-                            <span className="text-[8px] uppercase tracking-widest font-sans opacity-70 text-center truncate w-full mt-0.5">
-                              by {results.yapper.name}
-                            </span>
-                          </motion.div>
-                        </div>
-
-                        <motion.p
-                          variants={slideFadeUp}
-                          className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8"
-                        >
-                          "{results.yapper.name} once went on a monologue rampage of {results.yapper.count} messages in a row!"
-                        </motion.p>
-                      </motion.div>
+                    {activeSlideId === 'yapper' && (
+                      <YapperSlide
+                        isExport={false}
+                        results={results}
+                        senderA={senderA}
+                        senderB={senderB}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
                     )}
 
                     {/* Slide 4: Response Timings (The Ghoster) */}
-                    {activeSlide === 4 && (
-                      <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left"
-                      >
-                        <motion.div variants={slideFadeUp} className="space-y-3">
-                          <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
-                            Beyond a quick reply, your longest wait was...
-                          </p>
-                        </motion.div>
-
-                        {results.theGhoster ? (
-                          <div className="my-auto space-y-4 w-full">
-                            {/* Central White Card representing Card 3 layout */}
-                            <motion.div
-                              variants={slideFadeUp}
-                              className="bg-white rounded-[24px] p-5 shadow-xl border border-neutral-100 flex flex-col items-center justify-center gap-1.5 relative z-20 w-[240px] mx-auto"
-                            >
-                              {/* Large heart SVG */}
-                              <svg className="w-8 h-8 text-[#E95D3C]" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                              </svg>
-
-                              <h4 className="font-sans text-2xl font-extrabold tracking-tight text-neutral-900 leading-none text-center">
-                                {formatDuration(results.theGhoster.gapMs)}
-                              </h4>
-                              <p className="text-[10px] text-neutral-500 font-sans font-bold uppercase tracking-wider text-center">
-                                reply gap by {results.theGhoster.senderB}
-                              </p>
-                            </motion.div>
-
-                            {/* Conversation Snippet */}
-                            <motion.div
-                              variants={slideFadeUp}
-                              className="border-l-2 pl-3 py-1 space-y-2 rounded-r-xl bg-white/70 shadow-sm border-[#E95D3C] max-w-[290px] mx-auto w-full"
-                            >
-                              <div className="space-y-0.5">
-                                <p className="text-[9px] uppercase tracking-wider font-mono text-neutral-500">
-                                  {results.theGhoster.senderA} • {results.theGhoster.timestampA}
-                                </p>
-                                <p className="text-[10px] italic font-serif leading-tight text-neutral-800 line-clamp-1">
-                                  "{results.theGhoster.messageA}"
-                                </p>
-                              </div>
-                              <div className="space-y-0.5">
-                                <p className="text-[9px] uppercase tracking-wider font-mono font-semibold text-[#E95D3C]">
-                                  {results.theGhoster.senderB} replied • {results.theGhoster.timestampB}
-                                </p>
-                                <p className="text-[10px] font-serif leading-tight text-neutral-800 line-clamp-1">
-                                  "{results.theGhoster.messageB}"
-                                </p>
-                              </div>
-                            </motion.div>
-                          </div>
-                        ) : (
-                          <div className="my-auto text-center">
-                            <motion.p
-                              variants={slideFadeUp}
-                              className="text-sm font-light italic"
-                              style={{ color: activeStyle.secondaryText }}
-                            >
-                              No reply delays recorded. Perfect real-time connection.
-                            </motion.p>
-                          </div>
-                        )}
-
-                        <motion.p
-                          variants={slideFadeUp}
-                          className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8"
-                        >
-                          It takes patience to build a connection. Or maybe they were just busy!
-                        </motion.p>
-                      </motion.div>
+                    {activeSlideId === 'ghoster' && (
+                      <GhosterSlide
+                        isExport={false}
+                        results={results}
+                        activeStyle={activeStyle}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
                     )}
 
                     {/* Slide 5: Speed Racer vs Snail */}
-                    {activeSlide === 5 && (
-                      <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left"
-                      >
-                        <motion.div variants={slideFadeUp} className="space-y-3">
-                          <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
-                            {isGroup ? "Who responds at lightning speed and who takes their sweet time?" : "The Response Hierarchy: Who is the Speed Racer and who is the Snail?"}
-                          </p>
-                        </motion.div>
-
-                        <div className="my-auto space-y-4 w-full z-20">
-                          {isGroup ? (
-                            <motion.div
-                              variants={slideFadeUp}
-                              className="bg-white/80 backdrop-blur-md border border-white/40 rounded-2xl p-4 shadow-sm space-y-3"
-                            >
-                              <span className="text-[10px] font-mono tracking-wider text-neutral-500 font-bold uppercase">MEDIAN RESPONSE TIMES</span>
-                              <div className="space-y-3">
-                                {results.sendersList.slice(0, 3).map((sender) => {
-                                  const time = results.medianResponseTimes[sender] || 0;
-                                  return (
-                                    <div key={sender} className="flex justify-between items-center text-xs font-semibold text-neutral-800">
-                                      <span className="truncate max-w-[150px]">{sender}</span>
-                                      <span className="font-mono text-blue-600 font-bold">
-                                        {time > 0 ? formatDuration(time * 1000) : "N/A"}
-                                      </span>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </motion.div>
-                          ) : (
-                            <div className="space-y-4">
-                              <motion.div
-                                variants={slideFadeUp}
-                                className="bg-white/80 backdrop-blur-md border border-white/40 rounded-2xl p-4 shadow-sm flex flex-col gap-2"
-                              >
-                                <div className="flex justify-between items-center text-[10px] font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                                  <span>RESPONSE TIMES</span>
-                                </div>
-                                <div className="flex justify-between items-center border-b pb-2 border-neutral-100">
-                                  <span className="font-sans font-semibold text-neutral-800">{senderA}</span>
-                                  <span className="font-mono text-xs font-bold text-neutral-600">
-                                    {results.medianResponseTimes[senderA] ? formatDuration(results.medianResponseTimes[senderA] * 1000) : 'N/A'}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                  <span className="font-sans font-semibold text-neutral-800">{senderB}</span>
-                                  <span className="font-mono text-xs font-bold text-neutral-600">
-                                    {results.medianResponseTimes[senderB] ? formatDuration(results.medianResponseTimes[senderB] * 1000) : 'N/A'}
-                                  </span>
-                                </div>
-                              </motion.div>
-                            </div>
-                          )}
-                        </div>
-
-                        <motion.p
-                          variants={slideFadeUp}
-                          className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8"
-                        >
-                          {!isGroup && results.medianResponseTimes[senderA] && results.medianResponseTimes[senderB] ? (
-                            results.medianResponseTimes[senderA] < results.medianResponseTimes[senderB]
-                              ? `The response hierarchy is clear: ${senderA} replies in a median time of ${formatDuration(results.medianResponseTimes[senderA] * 1000)}, while ${senderB} takes ${formatDuration(results.medianResponseTimes[senderB] * 1000)}.`
-                              : `The response hierarchy is clear: ${senderB} replies in a median time of ${formatDuration(results.medianResponseTimes[senderB] * 1000)}, while ${senderA} takes ${formatDuration(results.medianResponseTimes[senderA] * 1000)}.`
-                          ) : "Calculated during active hours (9 AM - 10 PM) for messages that received a response."}
-                        </motion.p>
-                      </motion.div>
+                    {activeSlideId === 'speedracer' && (
+                      <SpeedRacerSlide
+                        isGroup={isGroup}
+                        isExport={false}
+                        results={results}
+                        senderA={senderA}
+                        senderB={senderB}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
                     )}
 
                     {/* Slide 6: Notification Bomber */}
-                    {activeSlide === 6 && (
-                      <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left"
-                      >
-                        <motion.div variants={slideFadeUp} className="space-y-3">
-                          <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
-                            {isGroup ? "Who causes your lock screen to explode with rapid-fire messages?" : "The Notification Bomber: Who triggers the most lock screen cascades?"}
-                          </p>
-                        </motion.div>
-
-                        <div className="my-auto space-y-3.5 w-full z-20 max-w-[280px] mx-auto">
-                          {results.sendersList.slice(0, 3).map((sender) => {
-                            const count = results.notificationBombs[sender] || 0;
-                            return (
-                              <motion.div
-                                key={sender}
-                                variants={slideFadeUp}
-                                className="bg-white/90 backdrop-blur-md border border-neutral-100 shadow-md rounded-xl p-3 flex items-center justify-between"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xl">🚨</span>
-                                  <div>
-                                    <h4 className="text-xs font-bold text-neutral-800 truncate max-w-[120px]">{sender}</h4>
-                                    <p className="text-[9px] text-neutral-500">Lock-screen cascades</p>
-                                  </div>
-                                </div>
-                                <span className="font-mono text-xs font-bold text-orange-600">{count} cascades</span>
-                              </motion.div>
-                            );
-                          })}
-                        </div>
-
-                        <motion.p
-                          variants={slideFadeUp}
-                          className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8"
-                        >
-                          Triggered when a user sends 5 or more rapid-fire messages within a 60-second window before getting a response.
-                        </motion.p>
-                      </motion.div>
+                    {activeSlideId === 'notificationbomber' && (
+                      <NotificationBomberSlide
+                        isGroup={isGroup}
+                        isExport={false}
+                        results={results}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
                     )}
 
                     {/* Slide 7: Midnight Philosopher */}
-                    {activeSlide === 7 && (
-                      <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left"
-                      >
-                        <motion.div variants={slideFadeUp} className="space-y-3">
-                          <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
-                            When the rest of the world went quiet, your chat kept going.
-                          </p>
-                          <div className="space-y-0">
-                            <h2 className="font-sans text-5xl sm:text-7xl font-extrabold tracking-tighter leading-none text-neutral-900">
-                              {results.totalMidnightMessages.toLocaleString()}
-                            </h2>
-                            <p className="text-xs uppercase tracking-widest font-mono text-neutral-500 font-bold mt-1">
-                              midnight messages exchanged
-                            </p>
-                          </div>
-                        </motion.div>
-
-                        {isGroup ? (
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="bg-white/80 backdrop-blur-md border border-white/40 rounded-2xl p-4 shadow-sm space-y-3.5 z-20 my-auto w-full"
-                          >
-                            <div className="flex justify-between items-center text-[10px] font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                              <span>MIDNIGHT CHATS SPLIT</span>
-                              <span className="text-indigo-600 font-bold">{results.totalMidnightMessages.toLocaleString()} texts</span>
-                            </div>
-
-                            <div className="space-y-2.5">
-                              {results.sendersList.slice(0, 3).map((sender, idx) => {
-                                const count = results.midnightCounts[sender] || 0;
-                                const pct = results.totalMidnightMessages > 0 ? Math.round((count / results.totalMidnightMessages) * 100) : 0;
-                                const barColors = ['bg-indigo-600', 'bg-[#E95D3C]', 'bg-[#10B981]'];
-
-                                return (
-                                  <div key={sender} className="space-y-1">
-                                    <div className="flex justify-between text-xs font-semibold text-neutral-800">
-                                      <span className="truncate max-w-[150px]">{idx + 1}. {sender}</span>
-                                      <span className="font-mono text-[10px] text-neutral-500 font-bold">{count.toLocaleString()} ({pct}%)</span>
-                                    </div>
-                                    <div className="h-2 w-full bg-neutral-100 rounded-full overflow-hidden">
-                                      <div className={`h-full ${barColors[idx] || 'bg-neutral-400'} transition-all`} style={{ width: `${pct}%` }} />
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </motion.div>
-                        ) : (
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="bg-white/80 backdrop-blur-md border border-white/40 rounded-2xl p-4 shadow-sm space-y-3 z-20 my-auto"
-                          >
-                            <div className="flex justify-between items-center text-[10px] font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                              <span>MIDNIGHT CHATS SPLIT</span>
-                              <span className="text-indigo-655 font-extrabold">{midPercentA}% vs {midPercentB}%</span>
-                            </div>
-
-                            <div className="h-3 w-full bg-neutral-100 rounded-full overflow-hidden flex">
-                              <div className="h-full bg-indigo-600 transition-all" style={{ width: `${midPercentA}%` }} />
-                              <div className="h-full bg-[#E95D3C] transition-all" style={{ width: `${midPercentB}%` }} />
-                            </div>
-
-                            <div className="flex justify-between text-xs font-sans">
-                              <div className="flex flex-col">
-                                <span className="font-semibold text-neutral-800 truncate max-w-[120px]">{senderA}</span>
-                                <span className="text-[10px] text-neutral-500 font-mono">{midA.toLocaleString()} texts</span>
-                              </div>
-                              <div className="flex flex-col items-end">
-                                <span className="font-semibold text-neutral-800 truncate max-w-[120px]">{senderB}</span>
-                                <span className="text-[10px] text-neutral-500 font-mono">{midB.toLocaleString()} texts</span>
-                              </div>
-                            </div>
-                          </motion.div>
-                        )}
-
-                        <motion.p
-                          variants={slideFadeUp}
-                          className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8"
-                        >
-                          Sent between 12 AM and 4 AM this year. Chief Sleep Evader: <span className="font-semibold text-neutral-800">{results.topMidnightPhilosopher?.name || 'N/A'}</span> (sent {results.topMidnightPhilosopher?.count.toLocaleString() || 0} messages).
-                        </motion.p>
-                      </motion.div>
+                    {activeSlideId === 'midnight' && (
+                      <MidnightPhilosopherSlide
+                        isGroup={isGroup}
+                        isExport={false}
+                        results={results}
+                        senderA={senderA}
+                        senderB={senderB}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
                     )}
 
                     {/* Slide 8: The Initiator */}
-                    {activeSlide === 8 && (
-                      <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left"
-                      >
-                        <motion.div variants={slideFadeUp} className="space-y-3">
-                          <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
-                            Starting a conversation after a block of silence takes initiative.
-                          </p>
-                          <div className="space-y-0">
-                            <h2 className="font-sans text-5xl sm:text-7xl font-extrabold tracking-tighter leading-none text-neutral-900">
-                              {results.topInitiator?.count || 0}
-                            </h2>
-                            <p className="text-xs uppercase tracking-widest font-mono text-neutral-500 font-bold mt-1">
-                              conversations started by {results.topInitiator?.name || 'N/A'}
-                            </p>
-                          </div>
-                        </motion.div>
-
-                        {isGroup ? (
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="bg-white/80 backdrop-blur-md border border-white/40 rounded-2xl p-4 shadow-sm space-y-3.5 z-20 my-auto w-full"
-                          >
-                            <div className="flex justify-between items-center text-[10px] font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                              <span>CONVERSATION STARTERS</span>
-                              <span className="text-emerald-600 font-bold">{(Object.values(results.initiations).reduce((a, b) => a + b, 0) || 0).toLocaleString()} starts</span>
-                            </div>
-
-                            <div className="space-y-2.5">
-                              {results.sendersList.slice(0, 3).map((sender, idx) => {
-                                const count = results.initiations[sender] || 0;
-                                const totalInits = Object.values(results.initiations).reduce((a, b) => a + b, 0) || 1;
-                                const pct = Math.round((count / totalInits) * 100);
-                                const barColors = ['bg-emerald-600', 'bg-[#E95D3C]', 'bg-[#0066FF]'];
-
-                                return (
-                                  <div key={sender} className="space-y-1">
-                                    <div className="flex justify-between text-xs font-semibold text-neutral-800">
-                                      <span className="truncate max-w-[150px]">{idx + 1}. {sender}</span>
-                                      <span className="font-mono text-[10px] text-neutral-500 font-bold">{count.toLocaleString()} ({pct}%)</span>
-                                    </div>
-                                    <div className="h-2 w-full bg-neutral-100 rounded-full overflow-hidden">
-                                      <div className={`h-full ${barColors[idx] || 'bg-neutral-400'} transition-all`} style={{ width: `${pct}%` }} />
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </motion.div>
-                        ) : (
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="bg-white/85 backdrop-blur-md border border-white/50 rounded-2xl p-4 shadow-sm space-y-3 z-20 my-auto"
-                          >
-                            <div className="flex justify-between items-center text-[10px] font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                              <span>CONVERSATION STARTERS</span>
-                              <span className="text-emerald-600 font-extrabold">{initPercentA}% vs {initPercentB}%</span>
-                            </div>
-
-                            <div className="h-3 w-full bg-neutral-100 rounded-full overflow-hidden flex">
-                              <div className="h-full bg-emerald-600 transition-all" style={{ width: `${initPercentA}%` }} />
-                              <div className="h-full bg-[#E95D3C] transition-all" style={{ width: `${initPercentB}%` }} />
-                            </div>
-
-                            <div className="flex justify-between text-xs font-sans">
-                              <div className="flex flex-col">
-                                <span className="font-semibold text-neutral-800 truncate max-w-[120px]">{senderA}</span>
-                                <span className="text-[10px] text-neutral-500 font-mono">{initA.toLocaleString()} times</span>
-                              </div>
-                              <div className="flex flex-col items-end">
-                                <span className="font-semibold text-neutral-800 truncate max-w-[120px]">{senderB}</span>
-                                <span className="text-[10px] text-neutral-500 font-mono">{initB.toLocaleString()} times</span>
-                              </div>
-                            </div>
-                          </motion.div>
-                        )}
-
-                        <motion.p
-                          variants={slideFadeUp}
-                          className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8 z-20 relative"
-                        >
-                          Conversations are initiated after a block of silence lasting more than 8 hours.
-                        </motion.p>
-                      </motion.div>
+                    {activeSlideId === 'initiator' && (
+                      <InitiatorSlide
+                        isGroup={isGroup}
+                        isExport={false}
+                        results={results}
+                        senderA={senderA}
+                        senderB={senderB}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
                     )}
 
                     {/* Slide 9: Chat CPR Award */}
-                    {activeSlide === 9 && (
-                      <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left"
-                      >
-                        <motion.div variants={slideFadeUp} className="space-y-3">
-                          <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
-                            The Chat CPR Award: Who resuscitated the conversation when it was completely dead?
-                          </p>
-                        </motion.div>
-
-                        <div className="my-auto space-y-4 w-full z-20">
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="bg-white/80 backdrop-blur-md border border-white/40 rounded-2xl p-4 shadow-sm space-y-3"
-                          >
-                            <span className="text-[10px] font-mono tracking-wider text-neutral-500 font-bold uppercase">CPRS PERFORMED (24H+ SILENCE)</span>
-                            <div className="space-y-2.5">
-                              {results.sendersList.slice(0, 3).map((sender) => {
-                                const count = results.resuscitationCounts[sender] || 0;
-                                return (
-                                  <div key={sender} className="flex justify-between items-center text-xs font-semibold text-neutral-800">
-                                    <span className="truncate max-w-[150px]">{sender}</span>
-                                    <span className="font-mono text-emerald-600 font-bold">{count} resuscitations</span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </motion.div>
-                        </div>
-
-                        <motion.p
-                          variants={slideFadeUp}
-                          className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8"
-                        >
-                          Awarded to whoever sent the very next message to bring the chat back to life after 24+ hours of silence.
-                        </motion.p>
-                      </motion.div>
+                    {activeSlideId === 'cpr' && (
+                      <ChatCPRSlide
+                        isExport={false}
+                        results={results}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
                     )}
 
                     {/* Slide 10: Dry Spell Milestone */}
-                    {activeSlide === 10 && (
-                      <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left"
-                      >
-                        <motion.div variants={slideFadeUp} className="space-y-3">
-                          <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
-                            The Great Silence: What was your longest dry spell this year?
-                          </p>
-                          {results.drySpell ? (
-                            <div className="space-y-0">
-                              <h2 className="font-sans text-6xl font-extrabold tracking-tighter leading-none text-neutral-900">
-                                {results.drySpell.days} Days
-                              </h2>
-                              <p className="text-xs uppercase tracking-widest font-mono text-neutral-500 font-bold mt-1">
-                                of absolute silence
-                              </p>
-                            </div>
-                          ) : (
-                            <p className="text-xs font-mono text-neutral-500">No silence periods detected.</p>
-                          )}
-                        </motion.div>
-
-                        {results.drySpell && (
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="bg-white/80 backdrop-blur-md border border-white/40 rounded-2xl p-4 shadow-sm z-20 my-auto text-center"
-                          >
-                            <span className="text-[10px] font-mono tracking-wider text-neutral-500 font-bold uppercase block mb-1">LONG TIME NO CHAT</span>
-                            <span className="font-sans font-bold text-neutral-800 text-sm">
-                              {results.drySpell.startDate} — {results.drySpell.endDate}
-                            </span>
-                            <p className="text-[10px] text-neutral-500 mt-2 font-serif italic">
-                              "You two literally forgot each other existed."
-                            </p>
-                          </motion.div>
-                        )}
-
-                        <motion.p
-                          variants={slideFadeUp}
-                          className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8"
-                        >
-                          Your longest consecutive gap of absolute silence. No texts, no memes, no voice notes. Just pure peace.
-                        </motion.p>
-                      </motion.div>
+                    {activeSlideId === 'dryspell' && (
+                      <DrySpellSlide
+                        isExport={false}
+                        results={results}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
                     )}
 
                     {/* Slide 11: The Media Mogul */}
-                    {activeSlide === 11 && (
-                      <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left"
-                      >
-                        <motion.div variants={slideFadeUp} className="space-y-3">
-                          <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
-                            A picture is worth a thousand words, and your gallery proves it.
-                          </p>
-                          <div className="space-y-0">
-                            <h2 className="font-sans text-5xl sm:text-7xl font-extrabold tracking-tighter leading-none text-neutral-900">
-                              {results.topMediaMogul?.count || 0}
-                            </h2>
-                            <p className="text-xs uppercase tracking-widest font-mono text-neutral-500 font-bold mt-1">
-                              media files shared by {results.topMediaMogul?.name || 'N/A'}
-                            </p>
-                          </div>
-                        </motion.div>
-
-                        {isGroup ? (
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="bg-white/80 backdrop-blur-md border border-white/40 rounded-2xl p-4 shadow-sm space-y-3.5 z-20 my-auto w-full"
-                          >
-                            <div className="flex justify-between items-center text-[10px] font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                              <span>GALLERY SPLIT</span>
-                              <span className="text-[#0066FF] font-bold">{results.topMediaMogul?.count || 0} files</span>
-                            </div>
-
-                            <div className="space-y-2.5">
-                              {results.sendersList.slice(0, 3).map((sender, idx) => {
-                                const count = results.mediaCounts[sender] || 0;
-                                const totalMedia = Object.values(results.mediaCounts).reduce((a, b) => a + b, 0) || 1;
-                                const pct = Math.round((count / totalMedia) * 100);
-                                const barColors = ['bg-[#0066FF]', 'bg-[#E95D3C]', 'bg-[#10B981]'];
-
-                                return (
-                                  <div key={sender} className="space-y-1">
-                                    <div className="flex justify-between text-xs font-semibold text-neutral-800">
-                                      <span className="truncate max-w-[150px]">{idx + 1}. {sender}</span>
-                                      <span className="font-mono text-[10px] text-neutral-500 font-bold">{count.toLocaleString()} ({pct}%)</span>
-                                    </div>
-                                    <div className="h-2 w-full bg-neutral-100 rounded-full overflow-hidden">
-                                      <div className={`h-full ${barColors[idx] || 'bg-neutral-400'} transition-all`} style={{ width: `${pct}%` }} />
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </motion.div>
-                        ) : (
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="bg-white/80 backdrop-blur-md border border-white/40 rounded-2xl p-4 shadow-sm space-y-3 z-20 my-auto"
-                          >
-                            <div className="flex justify-between items-center text-[10px] font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                              <span>GALLERY SPLIT</span>
-                              <span className="text-[#0066FF] font-extrabold">{mediaPercentA}% vs {mediaPercentB}%</span>
-                            </div>
-
-                            <div className="h-3 w-full bg-neutral-100 rounded-full overflow-hidden flex">
-                              <div className="h-full bg-[#0066FF] transition-all" style={{ width: `${mediaPercentA}%` }} />
-                              <div className="h-full bg-[#E95D3C] transition-all" style={{ width: `${mediaPercentB}%` }} />
-                            </div>
-
-                            <div className="flex justify-between text-xs font-sans">
-                              <div className="flex flex-col">
-                                <span className="font-semibold text-neutral-800 truncate max-w-[120px]">{senderA}</span>
-                                <span className="text-[10px] text-neutral-500 font-mono">{mediaA.toLocaleString()} files</span>
-                              </div>
-                              <div className="flex flex-col items-end">
-                                <span className="font-semibold text-neutral-800 truncate max-w-[120px]">{senderB}</span>
-                                <span className="text-[10px] text-neutral-500 font-mono">{mediaB.toLocaleString()} files</span>
-                              </div>
-                            </div>
-                          </motion.div>
-                        )}
-
-                        {(results.totalStickers > 0 || results.totalGifs > 0) ? (
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="bg-white/80 backdrop-blur-md border border-white/40 rounded-2xl p-3 shadow-sm grid grid-cols-2 gap-3 z-20 w-full mb-8"
-                          >
-                            <div className="flex flex-col justify-between p-2 rounded-xl bg-neutral-50/50 border border-neutral-100/60">
-                              <div className="flex items-center gap-1 text-[9px] font-mono tracking-wider text-neutral-400 font-bold uppercase">
-                                <span>👾 STICKERS</span>
-                                <span className="bg-[#10B981]/10 text-[#10B981] px-1 rounded font-bold font-sans text-[8px]">{results.totalStickers}</span>
-                              </div>
-                              <div className="mt-1">
-                                {results.topStickerSender ? (
-                                  <>
-                                    <div className="text-[8px] text-neutral-400 font-semibold uppercase font-mono tracking-tight leading-none">STICKER STAN</div>
-                                    <div className="text-xs font-sans font-extrabold text-neutral-800 truncate mt-0.5">{results.topStickerSender.name}</div>
-                                    <div className="text-[9px] font-mono text-neutral-500 font-bold mt-0.5">{results.topStickerSender.count} sent</div>
-                                  </>
-                                ) : (
-                                  <div className="text-[9px] text-neutral-400 italic">None sent</div>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="flex flex-col justify-between p-2 rounded-xl bg-neutral-50/50 border border-neutral-100/60">
-                              <div className="flex items-center gap-1 text-[9px] font-mono tracking-wider text-neutral-400 font-bold uppercase">
-                                <span>🎬 GIFS</span>
-                                <span className="bg-[#0066FF]/10 text-[#0066FF] px-1 rounded font-bold font-sans text-[8px]">{results.totalGifs}</span>
-                              </div>
-                              <div className="mt-1">
-                                {results.topGifSender ? (
-                                  <>
-                                    <div className="text-[8px] text-neutral-400 font-semibold uppercase font-mono tracking-tight leading-none">GIF OVERLORD</div>
-                                    <div className="text-xs font-sans font-extrabold text-neutral-800 truncate mt-0.5">{results.topGifSender.name}</div>
-                                    <div className="text-[9px] font-mono text-neutral-500 font-bold mt-0.5">{results.topGifSender.count} sent</div>
-                                  </>
-                                ) : (
-                                  <div className="text-[9px] text-neutral-400 italic">None sent</div>
-                                )}
-                              </div>
-                            </div>
-                          </motion.div>
-                        ) : (
-                          <motion.p
-                            variants={slideFadeUp}
-                            className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8 z-20 relative"
-                          >
-                            Counting all photos, stickers, voice notes, and media attachments sent in this chat.
-                          </motion.p>
-                        )}
-                      </motion.div>
+                    {activeSlideId === 'mediamogul' && (
+                      <MediaMogulSlide
+                        isGroup={isGroup}
+                        isExport={false}
+                        results={results}
+                        senderA={senderA}
+                        senderB={senderB}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
                     )}
 
                     {/* Slide 12: Text-to-Media Ratio */}
-                    {activeSlide === 12 && (
-                      <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left"
-                      >
-                        <motion.div variants={slideFadeUp} className="space-y-3">
-                          <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
-                            {isGroup ? "Who relies on stickers and attachments rather than typing?" : "The Media Spammer: Who communicates entirely in stickers and GIFs?"}
-                          </p>
-                        </motion.div>
-
-                        <div className="my-auto space-y-4 w-full z-20">
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="bg-white/80 backdrop-blur-md border border-white/40 rounded-2xl p-4 shadow-sm space-y-3.5"
-                          >
-                            <span className="text-[10px] font-mono tracking-wider text-neutral-500 font-bold uppercase">MEDIA TO TEXT RATIO</span>
-                            <div className="space-y-3">
-                              {results.sendersList.slice(0, 3).map((sender) => {
-                                const ratio = results.mediaRatios[sender] || 0;
-                                return (
-                                  <div key={sender} className="space-y-1">
-                                    <div className="flex justify-between text-xs font-semibold text-neutral-800">
-                                      <span className="truncate max-w-[150px]">{sender}</span>
-                                      <span className="font-mono text-emerald-600 font-bold">{ratio}% media</span>
-                                    </div>
-                                    <div className="h-2 w-full bg-neutral-100 rounded-full overflow-hidden">
-                                      <div className="h-full bg-emerald-500 transition-all" style={{ width: `${ratio}%` }} />
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </motion.div>
-                        </div>
-
-                        <motion.p
-                          variants={slideFadeUp}
-                          className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8"
-                        >
-                          Percentage of sent messages that contain media attachments rather than plain text.
-                        </motion.p>
-                      </motion.div>
+                    {activeSlideId === 'textmediaratio' && (
+                      <TextMediaRatioSlide
+                        isGroup={isGroup}
+                        isExport={false}
+                        results={results}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
                     )}
 
                     {/* Slide 13: Voice Notes */}
-                    {activeSlide === 13 && (
-                      <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left"
-                      >
-                        <motion.div variants={slideFadeUp} className="space-y-3">
-                          <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
-                            Sometimes typing is too much work. Your audio archives speak volumes.
-                          </p>
-                          <div className="space-y-0">
-                            <h2 className="font-sans text-5xl sm:text-7xl font-extrabold tracking-tighter leading-none text-neutral-900">
-                              {results.totalVoiceNotesCount.toLocaleString()}
-                            </h2>
-                            <p className="text-xs uppercase tracking-widest font-mono text-neutral-500 font-bold mt-1">
-                              voice notes sent • {formatDuration(results.totalVoiceNotesDuration * 1000)}
-                            </p>
-                          </div>
-                        </motion.div>
-
-                        {isGroup ? (
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="bg-white/80 backdrop-blur-md border border-white/40 rounded-2xl p-4 shadow-sm space-y-3.5 z-20 my-auto w-full"
-                          >
-                            <div className="flex justify-between items-center text-[10px] font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                              <span>VOICE NOTE SPLIT</span>
-                              <span className="text-purple-600 font-bold">{results.totalVoiceNotesCount} files</span>
-                            </div>
-
-                            <div className="space-y-2.5">
-                              {results.sendersList.slice(0, 3).map((sender, idx) => {
-                                const count = results.voiceNoteCounts[sender] || 0;
-                                const pct = results.totalVoiceNotesCount > 0 ? Math.round((count / results.totalVoiceNotesCount) * 100) : 0;
-                                const barColors = ['bg-purple-600', 'bg-[#E95D3C]', 'bg-[#10B981]'];
-
-                                return (
-                                  <div key={sender} className="space-y-1">
-                                    <div className="flex justify-between text-xs font-semibold text-neutral-800">
-                                      <span className="truncate max-w-[150px]">{idx + 1}. {sender}</span>
-                                      <span className="font-mono text-[10px] text-neutral-500 font-bold">{count.toLocaleString()} ({pct}%)</span>
-                                    </div>
-                                    <div className="h-2 w-full bg-neutral-100 rounded-full overflow-hidden">
-                                      <div className={`h-full ${barColors[idx] || 'bg-neutral-400'} transition-all`} style={{ width: `${pct}%` }} />
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </motion.div>
-                        ) : (
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="bg-white/80 backdrop-blur-md border border-white/40 rounded-2xl p-4 shadow-sm space-y-3 z-20 my-auto"
-                          >
-                            <div className="flex justify-between items-center text-[10px] font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                              <span>VOICE NOTE SPLIT</span>
-                              <span className="text-purple-600 font-extrabold">
-                                {Math.round(((results.voiceNoteCounts[senderA] || 0) / (results.totalVoiceNotesCount || 1)) * 100)}% vs {100 - Math.round(((results.voiceNoteCounts[senderA] || 0) / (results.totalVoiceNotesCount || 1)) * 100)}%
-                              </span>
-                            </div>
-
-                            <div className="h-3 w-full bg-neutral-100 rounded-full overflow-hidden flex">
-                              <div className="h-full bg-purple-600 transition-all" style={{ width: `${Math.round(((results.voiceNoteCounts[senderA] || 0) / (results.totalVoiceNotesCount || 1)) * 100)}%` }} />
-                              <div className="h-full bg-[#E95D3C] transition-all" style={{ width: `${100 - Math.round(((results.voiceNoteCounts[senderA] || 0) / (results.totalVoiceNotesCount || 1)) * 100)}%` }} />
-                            </div>
-
-                            <div className="flex justify-between text-xs font-sans">
-                              <div className="flex flex-col">
-                                <span className="font-semibold text-neutral-800 truncate max-w-[120px]">{senderA}</span>
-                                <span className="text-[10px] text-neutral-500 font-mono">{(results.voiceNoteCounts[senderA] || 0).toLocaleString()} VN</span>
-                              </div>
-                              <div className="flex flex-col items-end">
-                                <span className="font-semibold text-neutral-800 truncate max-w-[120px]">{senderB}</span>
-                                <span className="text-[10px] text-neutral-500 font-mono">{(results.voiceNoteCounts[senderB] || 0).toLocaleString()} VN</span>
-                              </div>
-                            </div>
-                          </motion.div>
-                        )}
-
-                        <motion.div
-                          variants={slideFadeUp}
-                          className="bg-white/90 border border-purple-100 rounded-2xl p-3 shadow-sm z-20 flex items-center gap-3 w-full"
-                        >
-                          <div className="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center text-lg text-purple-600 font-bold shrink-0">
-                            🎙️
-                          </div>
-                          <div className="flex flex-col text-left">
-                            <span className="text-[9px] font-mono font-bold text-purple-600 uppercase tracking-widest leading-none">LONGEST MONOLOGUE</span>
-                            {results.longestVoiceNote ? (
-                              <>
-                                <span className="text-xs font-sans font-extrabold text-neutral-800 truncate mt-1">
-                                  {results.longestVoiceNote.name}'s voice note
-                                </span>
-                                <span className="text-[10px] text-neutral-500 font-mono mt-0.5">
-                                  Lasted {formatDuration(results.longestVoiceNote.durationSec * 1000)}
-                                </span>
-                              </>
-                            ) : (
-                              <span className="text-xs text-neutral-500 italic mt-0.5">No voice notes parsed</span>
-                            )}
-                          </div>
-                        </motion.div>
-                      </motion.div>
+                    {activeSlideId === 'voicenotes' && (
+                      <VoiceNotesSlide
+                        isGroup={isGroup}
+                        isExport={false}
+                        results={results}
+                        senderA={senderA}
+                        senderB={senderB}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
                     )}
 
                     {/* Slide 14: Vocabulary & Emojis */}
-                    {activeSlide === 14 && (
-                      <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left"
-                      >
-                        <motion.div variants={slideFadeUp} className="space-y-2">
-                          <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
-                            Your signature reactions and favorite words of the year.
-                          </p>
-                        </motion.div>
-
-                        <div className="grid grid-cols-2 gap-3 my-auto w-full z-20">
-                          {/* Sender A Vocabulary Card */}
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="bg-white/95 rounded-[20px] p-3.5 space-y-3.5 shadow-lg border border-neutral-100 flex flex-col justify-between h-44"
-                          >
-                            <div className="border-b pb-1.5 border-neutral-100">
-                              <h4 className="font-sans text-xs font-bold truncate text-neutral-800">{senderA}</h4>
-                              <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="text-3xl">{results.emojiDependency[senderA]?.emoji || "❤️"}</span>
-                                <span className="text-[9px] font-mono uppercase tracking-wider text-neutral-500 font-semibold">x{results.emojiDependency[senderA]?.count || 0}</span>
-                              </div>
-                            </div>
-                            <div className="space-y-1">
-                              <span className="text-[8px] font-mono uppercase tracking-wider block font-bold text-neutral-400">TOP DIALECT</span>
-                              {(results.vocabulary[senderA] || []).slice(0, 3).map((w, idx) => (
-                                <div key={w.word} className="flex justify-between text-[10px] items-center">
-                                  <span className="capitalize truncate font-medium text-neutral-800">{idx + 1}. {w.word}</span>
-                                  <span className="font-mono text-neutral-500">{w.count}x</span>
-                                </div>
-                              ))}
-                            </div>
-                          </motion.div>
-
-                          {/* Sender B Vocabulary Card */}
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="bg-[#1C1A17] rounded-[20px] p-3.5 space-y-3.5 shadow-lg flex flex-col justify-between h-44 text-white"
-                          >
-                            <div className="border-b pb-1.5 border-white/10">
-                              <h4 className="font-sans text-xs font-bold truncate text-neutral-100">{senderB}</h4>
-                              <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="text-3xl">{results.emojiDependency[senderB]?.emoji || "❤️"}</span>
-                                <span className="text-[9px] font-mono uppercase tracking-wider text-neutral-400 font-semibold">x{results.emojiDependency[senderB]?.count || 0}</span>
-                              </div>
-                            </div>
-                            <div className="space-y-1">
-                              <span className="text-[8px] font-mono uppercase tracking-wider block font-bold text-neutral-500">TOP DIALECT</span>
-                              {(results.vocabulary[senderB] || []).slice(0, 3).map((w, idx) => (
-                                <div key={w.word} className="flex justify-between text-[10px] items-center">
-                                  <span className="capitalize truncate font-medium text-neutral-100">{idx + 1}. {w.word}</span>
-                                  <span className="font-mono text-neutral-400">{w.count}x</span>
-                                </div>
-                              ))}
-                            </div>
-                          </motion.div>
-                        </div>
-
-                        <motion.p
-                          variants={slideFadeUp}
-                          className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8"
-                        >
-                          {isGroup ? "Everyone speaks their own unique dialect. What a vibrant dynamic!" : "You both speak your own unique dialect. What a perfect dynamic!"}
-                        </motion.p>
-                      </motion.div>
+                    {activeSlideId === 'vocabulary' && (
+                      <VocabularySlide
+                        isGroup={isGroup}
+                        isExport={false}
+                        results={results}
+                        senderA={senderA}
+                        senderB={senderB}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
                     )}
 
                     {/* Slide 15: Slang Lord vs Corporate Dictator */}
-                    {activeSlide === 15 && (
-                      <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left"
-                      >
-                        <motion.div variants={slideFadeUp} className="space-y-3">
-                          <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
-                            Slang Lord vs. Corporate Dictator: Who writes like they are cold-emailing KPMG?
-                          </p>
-                        </motion.div>
-
-                        <div className="my-auto space-y-4 w-full z-20">
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="bg-white/85 backdrop-blur-md border border-white/40 rounded-2xl p-4 shadow-sm space-y-3.5"
-                          >
-                            <span className="text-[10px] font-mono tracking-wider text-neutral-500 font-bold uppercase block mb-1">DIALECT BREAKDOWN</span>
-
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="space-y-2 border-r pr-2 border-neutral-100">
-                                <span className="text-[9px] font-mono font-bold text-yellow-600 uppercase">💬 SLANG TERMS</span>
-                                {results.sendersList.slice(0, 3).map((sender) => (
-                                  <div key={sender} className="flex justify-between text-[11px] text-neutral-700">
-                                    <span className="truncate max-w-[90px]">{sender}</span>
-                                    <span className="font-mono font-bold">{results.slangCounts[sender] || 0}</span>
-                                  </div>
-                                ))}
-                              </div>
-                              <div className="space-y-2 pl-1">
-                                <span className="text-[9px] font-mono font-bold text-blue-600 uppercase">💼 CORPORATE TERMS</span>
-                                {results.sendersList.slice(0, 3).map((sender) => (
-                                  <div key={sender} className="flex justify-between text-[11px] text-neutral-700">
-                                    <span className="truncate max-w-[90px]">{sender}</span>
-                                    <span className="font-mono font-bold">{results.corporateCounts[sender] || 0}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </motion.div>
-                        </div>
-
-                        <motion.p
-                          variants={slideFadeUp}
-                          className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8"
-                        >
-                          One of you communicates entirely in text slang acronyms (fr, rn, idk). The other ends messages with full punctuation.
-                        </motion.p>
-                      </motion.div>
+                    {activeSlideId === 'slangcorporate' && (
+                      <SlangCorporateSlide
+                        isExport={false}
+                        results={results}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
                     )}
 
                     {/* Slide 16: The Panic Station Index */}
-                    {activeSlide === 16 && (
-                      <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left"
-                      >
-                        <motion.div variants={slideFadeUp} className="space-y-3">
-                          <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
-                            Who is Always Panicking? The Punctuation Chain Count.
-                          </p>
-                        </motion.div>
-
-                        <div className="my-auto space-y-4 w-full z-20">
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="bg-white/80 backdrop-blur-md border border-white/40 rounded-2xl p-4 shadow-sm space-y-3"
-                          >
-                            <span className="text-[10px] font-mono tracking-wider text-red-500 font-bold uppercase">PANIC INDEX (??? or !!! counts)</span>
-                            <div className="space-y-2.5">
-                              {results.sendersList.slice(0, 3).map((sender) => {
-                                const count = results.panicCounts[sender] || 0;
-                                return (
-                                  <div key={sender} className="flex justify-between items-center text-xs font-semibold text-neutral-800">
-                                    <span className="truncate max-w-[150px]">{sender}</span>
-                                    <span className="font-mono text-red-600 font-bold">{count} marks</span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </motion.div>
-                        </div>
-
-                        <motion.p
-                          variants={slideFadeUp}
-                          className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8"
-                        >
-                          When things go sideways, someone loses their mind first. Total pure punctuation chains sent.
-                        </motion.p>
-                      </motion.div>
+                    {activeSlideId === 'panicstation' && (
+                      <PanicStationSlide
+                        isExport={false}
+                        results={results}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
                     )}
 
                     {/* Slide 17: The Hyper-Fixation Phase */}
-                    {activeSlide === 17 && (
-                      <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left"
-                      >
-                        <motion.div variants={slideFadeUp} className="space-y-3">
-                          <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
-                            Your Word Hyper-Fixation Phase: A linguistic spike that disappeared.
-                          </p>
-                          {results.hyperFixation ? (
-                            <div className="space-y-0 text-center py-4 bg-white/40 rounded-2xl border border-white/20 p-4 shadow-sm">
-                              <h3 className="font-mono text-[10px] uppercase tracking-widest text-neutral-500 font-bold">IN {results.hyperFixation.monthName.toUpperCase()} YOU WENT CRAZY FOR</h3>
-                              <h2 className="font-sans text-4xl font-extrabold tracking-tighter text-pink-600 my-2">
-                                "{results.hyperFixation.word}"
-                              </h2>
-                              <p className="text-xs text-neutral-500 font-mono">
-                                Used {results.hyperFixation.count} times in one month
-                              </p>
-                            </div>
-                          ) : (
-                            <p className="text-xs font-mono text-neutral-500">No hyper-fixations detected.</p>
-                          )}
-                        </motion.div>
-
-                        <motion.p
-                          variants={slideFadeUp}
-                          className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8"
-                        >
-                          The single word that had a massive percentage spike in one specific month but virtually disappeared afterward. What happened there?
-                        </motion.p>
-                      </motion.div>
+                    {activeSlideId === 'hyperfixation' && (
+                      <HyperFixationSlide
+                        isExport={false}
+                        results={results}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
                     )}
 
                     {/* Slide 18: Chat Aura */}
-                    {activeSlide === 18 && (() => {
-                      const aura = calculateChatAura(results);
-                      if (!aura) return null;
-
-                      const config = {
-                        midnight: {
-                          title: "Night Owl Violet",
-                          gradient: "from-violet-600 via-indigo-700 to-blue-900",
-                          desc: "Mysterious, reflective, late-night deep talks. Your chat thrives under the cover of darkness, fueled by midnight monologues and deep-night disclosures.",
-                          vibe: "Reflective & Intimate"
-                        },
-                        active: {
-                          title: "Daylight Flame",
-                          gradient: "from-orange-500 via-red-600 to-amber-500",
-                          desc: "High-energy, fast-paced, daytime chaos. You trigger lock-screens, cascade notifications, and communicate in rapid-fire bursts of excitement.",
-                          vibe: "Electric & Chaotic"
-                        },
-                        balanced: {
-                          title: "Zenith Emerald",
-                          gradient: "from-emerald-500 via-teal-600 to-blue-600",
-                          desc: "Calm, steady, balanced connection. A harmonious pace of chat, with reliable response rhythms and structured, meaningful engagement.",
-                          vibe: "Harmonious & Grounded"
-                        }
-                      }[aura.theme];
-
-                      return (
-                        <motion.div
-                          variants={staggerContainer}
-                          initial="hidden"
-                          animate="visible"
-                          className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left relative overflow-hidden"
-                        >
-                          <motion.div variants={slideFadeUp} className="space-y-3 z-10">
-                            <p className="text-[17px] font-sans font-medium leading-relaxed text-white max-w-[280px]">
-                              Your Sensory Visualization: What does your chat vibe feel like?
-                            </p>
-                          </motion.div>
-
-                          {/* Pulsing Gradient Aura Orb */}
-                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0">
-                            <motion.div
-                              className={`w-64 h-64 rounded-full blur-[45px] opacity-70 bg-gradient-to-tr ${config.gradient}`}
-                              animate={{
-                                scale: [1, 1.15, 0.95, 1.05, 1],
-                                x: [0, 15, -10, 5, 0],
-                                y: [0, -15, 10, -5, 0],
-                                rotate: [0, 120, 240, 360]
-                              }}
-                              transition={{
-                                duration: aura.pulseDuration,
-                                repeat: Infinity,
-                                ease: "easeInOut"
-                              }}
-                            />
-                          </div>
-
-                          {/* Frosted Lens Card */}
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[32px] p-6 shadow-2xl z-10 w-full my-auto flex flex-col gap-4 text-white relative"
-                            style={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
-                          >
-                            <div className="border-b border-white/10 pb-3">
-                              <span className="text-[10px] font-mono tracking-widest text-[#8B5CF6] font-bold uppercase block">YOUR CHAT AURA</span>
-                              <h2 className="font-sans text-3xl font-extrabold tracking-tight mt-1 bg-gradient-to-r from-white to-neutral-200 bg-clip-text text-transparent">
-                                {config.title}
-                              </h2>
-                              <span className="inline-block mt-2 text-[9px] font-bold uppercase tracking-wider bg-white/10 px-2 py-0.5 rounded-full border border-white/5 text-neutral-200">
-                                Vibe: {config.vibe}
-                              </span>
-                            </div>
-
-                            <p className="text-xs leading-relaxed text-neutral-200 font-sans font-light">
-                              {config.desc}
-                            </p>
-                          </motion.div>
-
-                          {/* Aura stats breakdown */}
-                          <motion.div
-                            variants={slideFadeUp}
-                            className="bg-black/25 backdrop-blur-md rounded-2xl p-3 border border-white/5 space-y-1.5 z-10 w-full mb-8 text-[10px] text-neutral-300 font-sans"
-                          >
-                            <div className="flex justify-between items-center">
-                              <span className="font-mono uppercase text-[8px] text-neutral-400 tracking-wider">MIDNIGHT CONVERSATIONS</span>
-                              <span className="font-mono font-bold text-neutral-100">{Math.round(aura.midnightRatio * 100)}% of chat</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="font-mono uppercase text-[8px] text-neutral-400 tracking-wider">NOTIFICATION BOMBS</span>
-                              <span className="font-mono font-bold text-neutral-100">{aura.totalBombs} lock-screen spikes</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="font-mono uppercase text-[8px] text-[#8B5CF6] tracking-wider font-bold">PULSE RATE FREQUENCY</span>
-                              <span className="font-mono font-bold text-[#8B5CF6]">{Math.min(3, 1 + (aura.panicRatio * 15)).toFixed(1)}x speed</span>
-                            </div>
-                          </motion.div>
-                        </motion.div>
-                      );
-                    })()}
+                    {activeSlideId === 'chataura' && (
+                      <ChatAuraSlide
+                        isExport={false}
+                        results={results}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
+                    )}
 
                     {/* Slide 19: Heatmap Timeline */}
-                    {activeSlide === 19 && (() => {
-                      const timeline = results.monthlyTimeline || [];
-                      const maxMonthCount = Math.max(...timeline.map(t => t.totalCount || 1));
-                      const activeIndex = scrubMonth !== null ? scrubMonth : (() => {
-                        let maxVal = -1;
-                        let maxIdx = 0;
-                        timeline.forEach((t, idx) => {
-                          if (t.totalCount > maxVal) {
-                            maxVal = t.totalCount;
-                            maxIdx = idx;
-                          }
-                        });
-                        return maxIdx;
-                      })();
-                      const activeMonth = timeline[activeIndex];
+                    {activeSlideId === 'heatmap' && (
+                      <HeatmapSlide
+                        isExport={false}
+                        results={results}
+                        scrubMonth={scrubMonth}
+                        setScrubMonth={setScrubMonth}
+                        setIsPaused={setIsPaused}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
+                    )}
 
-                      const handleScrub = (clientX, containerEl) => {
-                        const rect = containerEl.getBoundingClientRect();
-                        const x = clientX - rect.left;
-                        const percent = Math.max(0, Math.min(0.999, x / rect.width));
-                        const monthIdx = Math.floor(percent * 12);
-                        setScrubMonth(monthIdx);
-                      };
+                    {/* Slide 20: Developer Slide */}
+                    {activeSlideId === 'developer' && (
+                      <DeveloperSlide
+                        isExport={false}
+                        results={results}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
+                    )}
 
-                      return (
-                        <motion.div
-                          variants={staggerContainer}
-                          initial="hidden"
-                          animate="visible"
-                          className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left relative z-20"
-                        >
-                          <motion.div variants={slideFadeUp} className="space-y-2">
-                            <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
-                              Your Chat Heatmap: Scrub over the months to reveal memories.
-                            </p>
-                          </motion.div>
+                    {/* Slide 21: Summary Slide */}
+                    {activeSlideId === 'summary' && (
+                      <SummarySlide
+                        isGroup={isGroup}
+                        isExport={false}
+                        results={results}
+                        senderA={senderA}
+                        senderB={senderB}
+                        senderC={senderC}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                      />
+                    )}
 
-                          {/* Tooltip Memory Flashback Card */}
-                          <div className="h-44 flex items-center justify-center w-full my-auto z-30">
-                            <AnimatePresence mode="wait">
-                              {activeMonth && activeMonth.peakDay && (
-                                <motion.div
-                                  key={activeIndex}
-                                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                                  transition={{ duration: 0.2 }}
-                                  className="w-full bg-white rounded-3xl p-4 shadow-xl border border-neutral-100 flex flex-col gap-3 relative"
-                                >
-                                  <div className="flex justify-between items-center border-b pb-2 border-neutral-100">
-                                    <div>
-                                      <span className="text-[9px] font-mono font-bold text-orange-600 uppercase tracking-wider block">MONTH PEAK</span>
-                                      <h4 className="text-sm font-sans font-extrabold text-neutral-800 leading-none mt-0.5">{activeMonth.peakDay.dateStr}</h4>
-                                    </div>
-                                    <span className="font-mono text-xs font-bold text-neutral-500 bg-neutral-100 px-2.5 py-1 rounded-full">{activeMonth.peakDay.count} texts</span>
-                                  </div>
-
-                                  {/* Flashback message */}
-                                  <div className="flex flex-col text-left bg-orange-50/50 rounded-2xl p-3 border border-orange-100/50">
-                                    <span className="text-[8px] font-mono font-bold text-orange-600 uppercase tracking-widest leading-none mb-1">FLASHBACK MESSAGE</span>
-                                    <p className="text-[9px] font-mono text-neutral-500 uppercase tracking-wider truncate mb-1">{activeMonth.peakDay.flashback.sender}</p>
-                                    <p className="text-[11px] font-serif italic leading-snug text-neutral-800 line-clamp-2">
-                                      "${activeMonth.peakDay.flashback.message}"
-                                    </p>
-                                  </div>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
-
-                          {/* Interactive Bar Chart Scrubber */}
-                          <div className="space-y-2 w-full z-20 relative">
-                            <div
-                              className="h-28 flex items-end justify-between gap-1 w-full bg-neutral-900/5 rounded-2xl p-3 border border-black/5 cursor-ew-resize relative pointer-events-auto touch-pan-y select-none"
-                              onMouseMove={(e) => {
-                                handleScrub(e.clientX, e.currentTarget);
-                                setIsPaused(true);
-                              }}
-                              onMouseLeave={() => {
-                                setScrubMonth(null);
-                                setIsPaused(false);
-                              }}
-                              onTouchStart={(e) => {
-                                handleScrub(e.touches[0].clientX, e.currentTarget);
-                                setIsPaused(true);
-                              }}
-                              onTouchMove={(e) => {
-                                handleScrub(e.touches[0].clientX, e.currentTarget);
-                                setIsPaused(true);
-                              }}
-                              onTouchEnd={() => {
-                                setScrubMonth(null);
-                                setIsPaused(false);
-                              }}
-                            >
-                              {timeline.map((t, idx) => {
-                                const heightPct = Math.max(10, Math.round((t.totalCount / maxMonthCount) * 100));
-                                const isActive = idx === activeIndex;
-                                return (
-                                  <div
-                                    key={t.monthIndex}
-                                    className="flex-grow flex flex-col items-center group h-full justify-end"
-                                  >
-                                    <div
-                                      className="w-full rounded-t-lg transition-all duration-150"
-                                      style={{
-                                        height: `${heightPct}%`,
-                                        backgroundColor: isActive ? '#E95D3C' : 'rgba(47, 35, 29, 0.2)',
-                                        boxShadow: isActive ? '0 0 12px rgba(233, 93, 60, 0.4)' : 'none'
-                                      }}
-                                    />
-                                    <span
-                                      className="text-[8px] font-mono mt-1 font-bold select-none"
-                                      style={{ color: isActive ? '#E95D3C' : '#7A6458' }}
-                                    >
-                                      {t.monthName.substring(0, 3)}
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            <span className="text-[8px] font-mono text-center block text-neutral-500 uppercase tracking-widest">DRAG OR HOVER OVER BARS TO RECALL MEMORIES</span>
-                          </div>
-
-                          <motion.p
-                            variants={slideFadeUp}
-                            className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8"
-                          >
-                            Timeline represents monthly text volumes. Scrubbing highlights the peak day of the month and pulls a random flashback message sent on that day.
-                          </motion.p>
-                        </motion.div>
-                      );
-                    })()}
-
-                    {/* Slide 20: Summary Slide */}
-                    {activeSlide === 20 && (
-                      <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="flex flex-col justify-between h-full pt-6 pb-2 px-3 text-left"
-                      >
-                        <motion.div variants={slideFadeUp} className="space-y-1">
-                          <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
-                            Now you're wrapping the year. Here is your conversational retro.
-                          </p>
-                        </motion.div>
-
-                        {/* On-screen Preview Card */}
-                        <div
-                          className={`border shadow-xl max-w-[320px] w-full relative overflow-hidden bg-white/95 z-20 mt-1 ${results.totalVoiceNotesCount > 0 ? 'p-3 rounded-[16px] space-y-2 mb-2' : 'p-4 rounded-[20px] space-y-3 mb-8'
-                            }`}
-                          style={{ borderColor: 'rgba(0, 0, 0, 0.03)' }}
-                        >
-                          <div className="absolute top-2 left-2 w-2.5 h-2.5 border-t border-l border-neutral-400" />
-                          <div className="absolute top-2 right-2 w-2.5 h-2.5 border-t border-r border-neutral-400" />
-                          <div className="absolute bottom-2 left-2 w-2.5 h-2.5 border-b border-l border-neutral-400" />
-                          <div className="absolute bottom-2 right-2 w-2.5 h-2.5 border-b border-r border-neutral-400" />
-
-                          <div className="text-center border-b pb-2 border-neutral-100">
-                            <span className="font-serif italic text-sm font-bold text-neutral-800">2026 Chat Retrospective</span>
-                          </div>
-
-                          <div className={`text-neutral-700 font-sans ${results.totalVoiceNotesCount > 0 ? 'space-y-1 text-[10px]' : 'space-y-2 text-[11px]'}`}>
-                            <div className={`flex justify-between items-center border-b ${results.totalVoiceNotesCount > 0 ? 'pb-0.5' : 'pb-1'} border-neutral-100`}>
-                              <span className="font-mono text-[8px] uppercase tracking-wider text-neutral-400 font-bold">MESSAGES</span>
-                              <span className="font-mono font-bold text-neutral-800">{results.totalMessages.toLocaleString()}</span>
-                            </div>
-
-                            <div className={`flex justify-between items-center border-b ${results.totalVoiceNotesCount > 0 ? 'pb-0.5' : 'pb-1'} border-neutral-100`}>
-                              <span className="font-mono text-[8px] uppercase tracking-wider text-neutral-400 font-bold">DAYS TEXTING</span>
-                              <span className="font-serif italic font-medium text-neutral-800">{results.longevityDays} Days</span>
-                            </div>
-
-                            <div className={`flex justify-between items-center border-b ${results.totalVoiceNotesCount > 0 ? 'pb-0.5' : 'pb-1'} border-neutral-100`}>
-                              <span className="font-mono text-[8px] uppercase tracking-wider text-neutral-400 font-bold">👑 THE YAPPER</span>
-                              <span className="font-serif font-medium text-neutral-800 truncate max-w-[110px]">{results.yapper?.name || 'N/A'}</span>
-                            </div>
-
-                            <div className={`flex justify-between items-center border-b ${results.totalVoiceNotesCount > 0 ? 'pb-0.5' : 'pb-1'} border-neutral-100`}>
-                              <span className="font-mono text-[8px] uppercase tracking-wider text-neutral-400 font-bold">MAX REPLY GAP</span>
-                              <span className="font-mono font-bold text-neutral-800 text-[10px]">
-                                {results.theGhoster ? formatDuration(results.theGhoster.gapMs) : '0 mins'}
-                              </span>
-                            </div>
-
-                            <div className={`flex justify-between items-center border-b ${results.totalVoiceNotesCount > 0 ? 'pb-0.5' : 'pb-1'} border-neutral-100`}>
-                              <span className="font-mono text-[8px] uppercase tracking-wider text-neutral-400 font-bold">PEAK HOUR</span>
-                              <span className="font-serif text-[10px] font-medium text-neutral-800">{results.peakTraffic.text}</span>
-                            </div>
-
-                            {results.totalVoiceNotesCount > 0 && (
-                              <>
-                                <div className="flex justify-between items-center border-b pb-0.5 border-neutral-100">
-                                  <span className="font-mono text-[8px] uppercase tracking-wider text-neutral-400 font-bold">🎙️ VOICE NOTES</span>
-                                  <span className="font-mono font-bold text-neutral-800">
-                                    {results.totalVoiceNotesCount} ({formatDuration(results.totalVoiceNotesDuration * 1000)})
-                                  </span>
-                                </div>
-
-                                <div className="flex justify-between items-center border-b pb-0.5 border-neutral-100">
-                                  <span className="font-mono text-[8px] uppercase tracking-wider text-neutral-400 font-bold">👑 PODCASTER</span>
-                                  <span className="font-serif font-medium text-neutral-800 truncate max-w-[125px]">
-                                    {results.topVoiceNoteSender?.name || 'N/A'} ({results.topVoiceNoteSender?.count} VNs)
-                                  </span>
-                                </div>
-
-                                <div className="flex justify-between items-center border-b pb-0.5 border-neutral-100">
-                                  <span className="font-mono text-[8px] uppercase tracking-wider text-neutral-400 font-bold">⏱️ LONGEST VN</span>
-                                  <span className="font-serif font-medium text-neutral-800 truncate max-w-[125px]">
-                                    {results.longestVoiceNote ? `${results.longestVoiceNote.name} (${formatDuration(results.longestVoiceNote.durationSec * 1000)})` : 'N/A'}
-                                  </span>
-                                </div>
-                              </>
-                            )}
-
-                            <div className="flex justify-between items-center">
-                              <span className="font-mono text-[8px] uppercase tracking-wider text-neutral-400 font-bold">TOP EMOJIS</span>
-                              <span className="flex gap-2 font-medium text-neutral-800 text-[10px]">
-                                <span>{senderA}: {results.emojiDependency[senderA]?.emoji || "❤️"}</span>
-                                <span>{senderB}: {results.emojiDependency[senderB]?.emoji || "❤️"}</span>
-                                {isGroup && senderC && <span>{senderC}: {results.emojiDependency[senderC]?.emoji || "❤️"}</span>}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </motion.div>
+                    {/* Slide 22: Thank You Slide */}
+                    {activeSlideId === 'thankyou' && (
+                      <ThankYouSlide
+                        isExport={false}
+                        staggerContainer={staggerContainer}
+                        slideFadeUp={slideFadeUp}
+                        onOpenFeedback={() => {
+                          setIsPaused(true);
+                          setShowFeedbackModal(true);
+                        }}
+                      />
                     )}
 
                   </motion.div>
@@ -2958,7 +1870,7 @@ function App() {
               </div>
 
               {/* Pause Warning overlay */}
-              {isPaused && !isExporting && activeSlide < 20 && (
+              {isPaused && !isExporting && activeSlide < activeSlides.length - 1 && (
                 <div
                   className="absolute top-8 right-6 z-30 font-mono text-[9px] text-neutral-500 uppercase tracking-widest px-2 py-0.5 rounded border border-neutral-900 flex items-center gap-1"
                   style={{ backgroundColor: 'rgba(10, 10, 10, 0.8)' }}
@@ -3112,15 +2024,17 @@ function App() {
                   </div>
                 )}
 
-                <div className="space-y-1">
-                  <span className="text-xs tracking-widest uppercase text-neutral-500 font-mono block">👑 THE YAPPER</span>
-                  <h3 className="font-serif text-4xl font-medium italic" style={{ color: '#1A1A1A' }}>{results.yapper?.name || 'N/A'}</h3>
-                  <p className="text-neutral-500 text-sm font-light">
-                    Sent {results.yapper?.count || 0} consecutive messages
-                  </p>
-                </div>
+                {results.yapper?.count > 0 && results.yapper?.name && (
+                  <div className="space-y-1">
+                    <span className="text-xs tracking-widest uppercase text-neutral-500 font-mono block">👑 THE YAPPER</span>
+                    <h3 className="font-serif text-4xl font-medium italic" style={{ color: '#1A1A1A' }}>{results.yapper.name}</h3>
+                    <p className="text-neutral-500 text-sm font-light">
+                      Sent {results.yapper.count} consecutive messages
+                    </p>
+                  </div>
+                )}
 
-                {results.theGhoster && (
+                {results.theGhoster?.gapMs > 0 && (
                   <div className="space-y-1">
                     <span className="text-xs tracking-widest uppercase text-neutral-500 font-mono block">LONGEST REPLY GAP</span>
                     <h3 className="font-serif text-3xl font-light" style={{ color: '#1A1A1A' }}>{formatDuration(results.theGhoster.gapMs)}</h3>
@@ -3197,12 +2111,12 @@ function App() {
             </div>
           </div>
 
-          {/* 2. MULTI-PAGE SLIDES FOR PDF EXPORTS (1080x1920 each, matched to 19 slides) */}
-          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map((slideIndex) => {
-            const style = SLIDE_STYLES[slideIndex];
+          {/* 2. MULTI-PAGE SLIDES FOR PDF EXPORTS (1080x1920 each, matched to slides count) */}
+          {activeSlides.filter(s => s.id !== 'thankyou').map((slide, slideIndex, filteredSlides) => {
+            const style = SLIDE_STYLES[slide.styleIndex];
             return (
               <div
-                key={slideIndex}
+                key={slide.id}
                 id={`pdf-slide-export-${slideIndex}`}
                 className="w-[1080px] h-[1920px] flex flex-col justify-between p-[90px] relative overflow-hidden"
                 style={{ display: 'none', backgroundColor: style.bg, color: style.text }}
@@ -3227,12 +2141,14 @@ function App() {
                       Wrapped • Year in Review
                     </span>
                   </div>
-                  <span className="font-mono text-sm tracking-widest uppercase" style={{ opacity: 0.7 }}>PAGE {slideIndex + 1 >= 10 ? slideIndex + 1 : '0' + (slideIndex + 1)} OF 21</span>
+                  <span className="font-mono text-sm tracking-widest uppercase" style={{ opacity: 0.7 }}>
+                    PAGE {slideIndex + 1 >= 10 ? slideIndex + 1 : '0' + (slideIndex + 1)} OF {filteredSlides.length}
+                  </span>
                 </div>
 
                 {/* PDF Progress Indicators */}
                 <div className="flex gap-2 w-full relative z-10 mb-8">
-                  {Array.from({ length: 21 }).map((_, idx) => (
+                  {Array.from({ length: filteredSlides.length }).map((_, idx) => (
                     <div
                       key={idx}
                       className="h-[5px] flex-grow rounded-full overflow-hidden"
@@ -3243,1122 +2159,240 @@ function App() {
 
                 {/* PDF Content Body */}
                 <div className="my-auto relative z-10 flex flex-col justify-between items-start text-left w-full h-[1400px] px-6 pointer-events-none">
-
-                  {slideIndex === 0 && (
-                    <div className="flex flex-col justify-between h-full py-12 text-left">
-                      <div className="space-y-8">
-                        <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
-                          {isGroup ? "Here is your year in review with your group." : "Here is your year in review with your favorite person."}
-                        </p>
-                        <div className="space-y-0">
-                          <h2 className="font-sans text-[12rem] font-extrabold tracking-tighter leading-none text-neutral-900">
-                            2026
-                          </h2>
-                          <p className="text-lg uppercase tracking-widest font-mono text-neutral-500 font-bold mt-2">
-                            Wrapped • Year in Review
-                          </p>
-                        </div>
-                      </div>
-                      <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
-                        Unpack the reply logs, dialogue volumes, and habits that defined your {isGroup ? 'group chat' : 'chat thread'} this year.
-                      </p>
-                    </div>
+                  {slide.id === 'cover' && (
+                    <CoverSlide
+                      isGroup={isGroup}
+                      isExport={true}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
                   )}
 
-                  {slideIndex === 1 && (
-                    <div className="flex flex-col justify-between h-full py-12 text-left w-full">
-                      <div className="space-y-8">
-                        <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
-                          {isGroup ? "You all connected more than ever before. Every conversation, counted." : "You connected more than ever before. Every conversation, counted."}
-                        </p>
-                        <div className="space-y-0">
-                          <h2 className="font-sans text-[10rem] font-extrabold tracking-tighter leading-none text-neutral-900">
-                            {results.totalMessages.toLocaleString()}
-                          </h2>
-                          <p className="text-lg uppercase tracking-widest font-mono text-neutral-500 font-bold mt-2">
-                            messages exchanged
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* PDF Card Slide 1 */}
-                      {isGroup ? (
-                        <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-8 w-full">
-                          <div className="flex justify-between items-center text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                            <span>TOP CONTRIBUTORS</span>
-                            <span className="text-[#0066FF] font-bold">{results.sendersList.length} members</span>
-                          </div>
-
-                          <div className="space-y-6">
-                            {results.sendersList.slice(0, 3).map((sender, idx) => {
-                              const count = results.senderCounts[sender] || 0;
-                              const pct = Math.round((count / results.totalMessages) * 100);
-                              const barColors = ['bg-[#0066FF]', 'bg-[#E95D3C]', 'bg-[#10B981]'];
-
-                              return (
-                                <div key={sender} className="space-y-2">
-                                  <div className="flex justify-between text-xl font-semibold text-neutral-800">
-                                    <span className="truncate max-w-[450px]">{idx + 1}. {sender}</span>
-                                    <span className="font-mono text-base text-neutral-500 font-bold">{count.toLocaleString()} ({pct}%)</span>
-                                  </div>
-                                  <div className="h-4 w-full bg-neutral-100 rounded-full overflow-hidden">
-                                    <div className={`h-full ${barColors[idx] || 'bg-neutral-400'}`} style={{ width: `${pct}%` }} />
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-8 w-full">
-                          <div className="flex justify-between items-center text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                            <span>MESSAGE SHARE</span>
-                            <span className="text-[#0066FF] font-extrabold">{percentA}% vs {percentB}%</span>
-                          </div>
-
-                          <div className="h-8 w-full bg-neutral-100 rounded-full overflow-hidden flex">
-                            <div className="h-full bg-[#0066FF]" style={{ width: `${percentA}%` }} />
-                            <div className="h-full bg-[#E95D3C]" style={{ width: `${percentB}%` }} />
-                          </div>
-
-                          <div className="flex justify-between text-2xl font-sans">
-                            <div className="flex flex-col">
-                              <span className="font-semibold text-neutral-800 truncate max-w-[300px]">{senderA}</span>
-                              <span className="text-lg text-neutral-500 font-mono mt-1">{countA.toLocaleString()} texts</span>
-                            </div>
-                            <div className="flex flex-col items-end">
-                              <span className="font-semibold text-neutral-800 truncate max-w-[300px]">{senderB}</span>
-                              <span className="text-lg text-neutral-500 font-mono mt-1">{countB.toLocaleString()} texts</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
-                        Exchanged over <span className="font-semibold text-neutral-800">{results.longevityDays} days</span> of chatting. That's a total word count of <span className="font-semibold text-neutral-800">{results.totalWordCount.toLocaleString()}</span> words!
-                      </p>
-                    </div>
+                  {slide.id === 'volume' && (
+                    <VolumeSlide
+                      isGroup={isGroup}
+                      isExport={true}
+                      results={results}
+                      percentA={percentA}
+                      percentB={percentB}
+                      senderA={senderA}
+                      senderB={senderB}
+                      countA={countA}
+                      countB={countB}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
                   )}
 
-                  {slideIndex === 2 && (
-                    <div className="flex flex-col justify-between h-full py-12 text-left w-full">
-                      <div className="space-y-8">
-                        <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
-                          Your weekly peak traffic hour when the chat really came alive.
-                        </p>
-                        <div className="space-y-0">
-                          <h2 className="font-sans text-[9rem] font-extrabold tracking-tighter leading-none text-neutral-900">
-                            {results.peakTraffic.day}s
-                          </h2>
-                          <h2 className="font-sans text-[7rem] font-extrabold tracking-tighter leading-none" style={{ color: style.accent }}>
-                            at {results.peakTraffic.hour}
-                          </h2>
-                          <p className="text-lg uppercase tracking-widest font-mono text-neutral-500 font-bold mt-2">
-                            peak connection window
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* PDF Card Slide 2 */}
-                      <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-8 w-full">
-                        <div className="text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                          WEEKLY RHYTHM
-                        </div>
-
-                        <div className="flex justify-between items-center px-2">
-                          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => {
-                            const isActiveDay = results?.peakTraffic?.day?.startsWith(d);
-                            return (
-                              <div key={d} className="flex flex-col items-center gap-3">
-                                <div
-                                  className={`w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold ${isActiveDay
-                                      ? 'bg-[#0066FF] text-white shadow-lg ring-4 ring-white/50'
-                                      : 'bg-neutral-100 text-neutral-400'
-                                    }`}
-                                >
-                                  {d[0]}
-                                </div>
-                                <span className={`text-sm font-mono font-bold uppercase ${isActiveDay ? 'text-blue-600 font-extrabold' : 'text-neutral-500'}`}>{d}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-
-                        <div className="flex items-center gap-6 bg-neutral-50/50 p-6 rounded-[24px] border border-neutral-100">
-                          <div className="w-16 h-16 rounded-2xl bg-neutral-100 flex items-center justify-center text-4xl shadow-inner">
-                            ⏰
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-2xl font-semibold text-neutral-800">Peak Hour: {results?.peakTraffic?.hour}</span>
-                            <span className="text-lg text-neutral-500 font-medium mt-1">When your chat bursts into life</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
-                        {results.peakTraffic.text}
-                      </p>
-                    </div>
+                  {slide.id === 'peak' && (
+                    <PeakTrafficSlide
+                      isExport={true}
+                      results={results}
+                      activeStyle={style}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
                   )}
 
-                  {slideIndex === 3 && (
-                    <div className="flex flex-col justify-between h-full py-12 text-left w-full">
-                      <div className="space-y-8">
-                        <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
-                          You amplified others' ideas, but someone usually took the stage.
-                        </p>
-                      </div>
-
-                      <div className="relative w-full h-[700px] my-auto">
-                        {/* Decorative black bubble */}
-                        <div className="w-[330px] h-[250px] bg-[#1C1A17]/8 border border-[#1C1A17]/10 rounded-[70px] absolute right-[100px] bottom-[150px] shadow-md transform rotate-[-6deg]" />
-
-                        {/* Decorative blue bubble */}
-                        <div className="w-[360px] h-[280px] bg-[#0066FF]/10 border border-[#0066FF]/15 rounded-[80px] absolute left-[100px] bottom-[50px] shadow-md transform rotate-[4deg]" />
-
-                        {/* Green bubble */}
-                        <div className="absolute right-[50px] top-0 w-[420px] h-[300px] bg-[#224535] text-white rounded-[90px] p-8 flex flex-col justify-center items-center shadow-2xl z-20">
-                          <span className="font-sans text-6xl font-extrabold tracking-tight">
-                            {(results.doubleTexter[senderA] || 1.0).toFixed(1)} vs {(results.doubleTexter[senderB] || 1.0).toFixed(1)}
-                          </span>
-                          <span className="text-lg uppercase tracking-wider font-mono opacity-80 text-center leading-tight mt-3">
-                            avg texts/turn
-                          </span>
-                        </div>
-
-                        {/* Orange bubble */}
-                        <div className="absolute left-[50px] top-[120px] w-[430px] h-[310px] bg-[#E95D3C] text-white rounded-[90px] p-8 flex flex-col justify-center items-center shadow-2xl z-20">
-                          <span className="font-sans text-7xl font-extrabold tracking-tight">
-                            {results.yapper.count}
-                          </span>
-                          <span className="text-lg uppercase tracking-wider font-mono opacity-80 text-center leading-tight mt-3 font-bold">
-                            consecutive messages
-                          </span>
-                          <span className="text-sm uppercase tracking-widest font-sans opacity-70 text-center truncate w-full mt-2">
-                            by {results.yapper.name}
-                          </span>
-                        </div>
-                      </div>
-
-                      <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
-                        "{results.yapper.name} once went on a monologue rampage of {results.yapper.count} messages in a row!"
-                      </p>
-                    </div>
+                  {slide.id === 'yapper' && (
+                    <YapperSlide
+                      isExport={true}
+                      results={results}
+                      senderA={senderA}
+                      senderB={senderB}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
                   )}
 
-                  {slideIndex === 4 && (
-                    <div className="flex flex-col justify-between h-full py-12 text-left w-full">
-                      <div className="space-y-8">
-                        <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
-                          Beyond a quick reply, your longest wait was...
-                        </p>
-                      </div>
-
-                      {results.theGhoster ? (
-                        <div className="my-auto space-y-12 w-full">
-                          {/* Central White Card */}
-                          <div className="bg-white rounded-[60px] p-12 shadow-2xl border border-neutral-100 flex flex-col items-center justify-center gap-4 relative z-20 w-[600px] mx-auto">
-                            <svg className="w-20 h-20 text-[#E95D3C]" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                            </svg>
-
-                            <h4 className="font-sans text-5xl font-extrabold tracking-tight text-neutral-900 leading-none text-center">
-                              {formatDuration(results.theGhoster.gapMs)}
-                            </h4>
-                            <p className="text-sm text-neutral-500 font-sans font-bold uppercase tracking-wider text-center">
-                              reply gap by {results.theGhoster.senderB}
-                            </p>
-                          </div>
-
-                          {/* Snippet */}
-                          <div className="border-l-4 pl-8 py-4 space-y-4 rounded-r-[36px] bg-white/70 shadow-md border-[#E95D3C] max-w-[650px] mx-auto w-full">
-                            <div className="space-y-1">
-                              <p className="text-xs uppercase tracking-wider font-mono text-neutral-500">
-                                {results.theGhoster.senderA} • {results.theGhoster.timestampA}
-                              </p>
-                              <p className="text-lg italic font-serif leading-tight text-neutral-800">
-                                "{results.theGhoster.messageA}"
-                              </p>
-                            </div>
-                            <div className="space-y-1">
-                              <p className="text-xs uppercase tracking-wider font-mono font-semibold text-[#E95D3C]">
-                                {results.theGhoster.senderB} replied • {results.theGhoster.timestampB}
-                              </p>
-                              <p className="text-lg font-serif leading-tight text-neutral-800">
-                                "{results.theGhoster.messageB}"
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="text-2xl font-light italic">No reply delays recorded.</p>
-                      )}
-
-                      <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
-                        It takes patience to build a connection. Or maybe they were just busy!
-                      </p>
-                    </div>
+                  {slide.id === 'ghoster' && (
+                    <GhosterSlide
+                      isExport={true}
+                      results={results}
+                      activeStyle={style}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
                   )}
 
-                  {slideIndex === 5 && (
-                    <div className="flex flex-col justify-between h-full py-12 text-left w-full">
-                      <div className="space-y-8">
-                        <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
-                          The Response Hierarchy: Who is the Speed Racer and who is the Snail?
-                        </p>
-                      </div>
-                      <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-8 w-full my-auto">
-                        <div className="text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                          MEDIAN RESPONSE TIMES
-                        </div>
-                        <div className="space-y-6">
-                          {results.sendersList.slice(0, 3).map((sender) => {
-                            const time = results.medianResponseTimes[sender] || 0;
-                            return (
-                              <div key={sender} className="flex justify-between items-center text-2xl font-semibold text-neutral-800 border-b pb-4 border-neutral-100">
-                                <span className="truncate max-w-[450px]">{sender}</span>
-                                <span className="font-mono text-xl font-bold text-neutral-500">
-                                  {time > 0 ? formatDuration(time * 1000) : "N/A"}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                      <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
-                        Calculated during active hours (9 AM - 10 PM) for response delays under 6 hours.
-                      </p>
-                    </div>
+                  {slide.id === 'speedracer' && (
+                    <SpeedRacerSlide
+                      isGroup={isGroup}
+                      isExport={true}
+                      results={results}
+                      senderA={senderA}
+                      senderB={senderB}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
                   )}
 
-                  {slideIndex === 6 && (
-                    <div className="flex flex-col justify-between h-full py-12 text-left w-full">
-                      <div className="space-y-8">
-                        <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
-                          The Phone Buzzer: Who triggers the most lock screen cascades?
-                        </p>
-                      </div>
-                      <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-6 w-full my-auto max-w-[800px] mx-auto">
-                        <div className="text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                          NOTIFICATION BOMB CASCADES
-                        </div>
-                        <div className="space-y-6">
-                          {results.sendersList.slice(0, 3).map((sender) => {
-                            const count = results.notificationBombs[sender] || 0;
-                            return (
-                              <div key={sender} className="flex justify-between items-center text-2xl font-semibold text-neutral-800 border-b pb-4 border-neutral-100">
-                                <span className="truncate max-w-[450px]">{sender}</span>
-                                <span className="font-mono text-xl font-bold text-orange-605">{count} cascades</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                      <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
-                        Triggered when a user sends 5 or more rapid-fire messages within a 60-second window before getting a response.
-                      </p>
-                    </div>
+                  {slide.id === 'notificationbomber' && (
+                    <NotificationBomberSlide
+                      isGroup={isGroup}
+                      isExport={true}
+                      results={results}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
                   )}
 
-                  {slideIndex === 7 && (
-                    <div className="flex flex-col justify-between h-full py-12 text-left w-full">
-                      <div className="space-y-8">
-                        <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
-                          When the rest of the world went quiet, your chat kept going.
-                        </p>
-                        <div className="space-y-0">
-                          <h2 className="font-sans text-[10rem] font-extrabold tracking-tighter leading-none text-neutral-900">
-                            {results.totalMidnightMessages.toLocaleString()}
-                          </h2>
-                          <p className="text-lg uppercase tracking-widest font-mono text-neutral-500 font-bold mt-2">
-                            midnight messages exchanged
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* PDF Card Slide 7 */}
-                      {isGroup ? (
-                        <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-8 w-full">
-                          <div className="flex justify-between items-center text-xl font-mono tracking-wider text-indigo-600 font-bold uppercase">
-                            <span>MIDNIGHT CHATS SPLIT</span>
-                            <span className="text-indigo-600 font-bold">{results.totalMidnightMessages.toLocaleString()} texts</span>
-                          </div>
-
-                          <div className="space-y-6">
-                            {results.sendersList.slice(0, 3).map((sender, idx) => {
-                              const count = results.midnightCounts[sender] || 0;
-                              const pct = results.totalMidnightMessages > 0 ? Math.round((count / results.totalMidnightMessages) * 100) : 0;
-                              const barColors = ['bg-indigo-600', 'bg-[#E95D3C]', 'bg-[#10B981]'];
-
-                              return (
-                                <div key={sender} className="space-y-2">
-                                  <div className="flex justify-between text-xl font-semibold text-neutral-800">
-                                    <span className="truncate max-w-[450px]">{idx + 1}. {sender}</span>
-                                    <span className="font-mono text-base text-neutral-500 font-bold">{count.toLocaleString()} ({pct}%)</span>
-                                  </div>
-                                  <div className="h-4 w-full bg-neutral-100 rounded-full overflow-hidden">
-                                    <div className={`h-full ${barColors[idx] || 'bg-neutral-400'}`} style={{ width: `${pct}%` }} />
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-8 w-full">
-                          <div className="flex justify-between items-center text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                            <span>MIDNIGHT CHATS SPLIT</span>
-                            <span className="text-indigo-600 font-extrabold">{midPercentA}% vs {midPercentB}%</span>
-                          </div>
-
-                          <div className="h-8 w-full bg-neutral-100 rounded-full overflow-hidden flex">
-                            <div className="h-full bg-indigo-600" style={{ width: `${midPercentA}%` }} />
-                            <div className="h-full bg-[#E95D3C]" style={{ width: `${midPercentB}%` }} />
-                          </div>
-
-                          <div className="flex justify-between text-2xl font-sans">
-                            <div className="flex flex-col">
-                              <span className="font-semibold text-neutral-800 truncate max-w-[300px]">{senderA}</span>
-                              <span className="text-lg text-neutral-500 font-mono mt-1">{midA.toLocaleString()} texts</span>
-                            </div>
-                            <div className="flex flex-col items-end">
-                              <span className="font-semibold text-neutral-800 truncate max-w-[300px]">{senderB}</span>
-                              <span className="text-lg text-neutral-500 font-mono mt-1">{midB.toLocaleString()} texts</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
-                        Sent between 12 AM and 4 AM this year. Chief Sleep Evader: <span className="font-semibold text-neutral-800">{results.topMidnightPhilosopher?.name || 'N/A'}</span> (sent {results.topMidnightPhilosopher?.count.toLocaleString() || 0} messages).
-                      </p>
-                    </div>
+                  {slide.id === 'midnight' && (
+                    <MidnightPhilosopherSlide
+                      isGroup={isGroup}
+                      isExport={true}
+                      results={results}
+                      senderA={senderA}
+                      senderB={senderB}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
                   )}
 
-                  {slideIndex === 8 && (
-                    <div className="flex flex-col justify-between h-full py-12 text-left w-full">
-                      <div className="space-y-8">
-                        <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
-                          Starting a conversation after a block of silence takes initiative.
-                        </p>
-                        <div className="space-y-0">
-                          <h2 className="font-sans text-[10rem] font-extrabold tracking-tighter leading-none text-neutral-900">
-                            {results.topInitiator?.count || 0}
-                          </h2>
-                          <p className="text-lg uppercase tracking-widest font-mono text-neutral-500 font-bold mt-2">
-                            conversations started by {results.topInitiator?.name || 'N/A'}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* PDF Card Slide 8 */}
-                      {isGroup ? (
-                        <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-8 w-full">
-                          <div className="flex justify-between items-center text-xl font-mono tracking-wider text-emerald-600 font-bold uppercase">
-                            <span>CONVERSATION STARTERS</span>
-                            <span className="text-emerald-600 font-bold">
-                              {(Object.values(results.initiations).reduce((a, b) => a + b, 0) || 0).toLocaleString()} starts
-                            </span>
-                          </div>
-
-                          <div className="space-y-6">
-                            {results.sendersList.slice(0, 3).map((sender, idx) => {
-                              const count = results.initiations[sender] || 0;
-                              const totalInits = Object.values(results.initiations).reduce((a, b) => a + b, 0) || 1;
-                              const pct = Math.round((count / totalInits) * 100);
-                              const barColors = ['bg-emerald-600', 'bg-[#E95D3C]', 'bg-[#0066FF]'];
-
-                              return (
-                                <div key={sender} className="space-y-2">
-                                  <div className="flex justify-between text-xl font-semibold text-neutral-800">
-                                    <span className="truncate max-w-[450px]">{idx + 1}. {sender}</span>
-                                    <span className="font-mono text-base text-neutral-500 font-bold">{count.toLocaleString()} ({pct}%)</span>
-                                  </div>
-                                  <div className="h-4 w-full bg-neutral-100 rounded-full overflow-hidden">
-                                    <div className={`h-full ${barColors[idx] || 'bg-neutral-400'}`} style={{ width: `${pct}%` }} />
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-8 w-full">
-                          <div className="flex justify-between items-center text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                            <span>CONVERSATION STARTERS</span>
-                            <span className="text-emerald-600 font-extrabold">{initPercentA}% vs {initPercentB}%</span>
-                          </div>
-
-                          <div className="h-8 w-full bg-neutral-100 rounded-full overflow-hidden flex">
-                            <div className="h-full bg-emerald-600" style={{ width: `${initPercentA}%` }} />
-                            <div className="h-full bg-[#E95D3C]" style={{ width: `${initPercentB}%` }} />
-                          </div>
-
-                          <div className="flex justify-between text-2xl font-sans">
-                            <div className="flex flex-col">
-                              <span className="font-semibold text-neutral-800 truncate max-w-[300px]">{senderA}</span>
-                              <span className="text-lg text-neutral-500 font-mono mt-1">{initA.toLocaleString()} times</span>
-                            </div>
-                            <div className="flex flex-col items-end">
-                              <span className="font-semibold text-neutral-800 truncate max-w-[300px]">{senderB}</span>
-                              <span className="text-lg text-neutral-500 font-mono mt-1">{initB.toLocaleString()} times</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
-                        Conversations are initiated after a block of silence lasting more than 8 hours.
-                      </p>
-                    </div>
+                  {slide.id === 'initiator' && (
+                    <InitiatorSlide
+                      isGroup={isGroup}
+                      isExport={true}
+                      results={results}
+                      senderA={senderA}
+                      senderB={senderB}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
                   )}
 
-                  {slideIndex === 9 && (
-                    <div className="flex flex-col justify-between h-full py-12 text-left w-full">
-                      <div className="space-y-8">
-                        <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
-                          The Chat CPR Award: Who resuscitated the conversation when it was completely dead?
-                        </p>
-                      </div>
-                      <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-6 w-full my-auto">
-                        <div className="text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                          TOTAL RESUSCITATIONS (24H+ SILENCE)
-                        </div>
-                        <div className="space-y-6">
-                          {results.sendersList.slice(0, 3).map((sender) => {
-                            const count = results.resuscitationCounts[sender] || 0;
-                            return (
-                              <div key={sender} className="flex justify-between items-center text-2xl font-semibold text-neutral-800 border-b pb-4 border-neutral-100">
-                                <span className="truncate max-w-[450px]">{sender}</span>
-                                <span className="font-mono text-xl font-bold text-emerald-600">{count} CPRs</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                      <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
-                        Tracked when a chat had a dead spell of more than 24 hours, and who sends the very next message to bring it back to life.
-                      </p>
-                    </div>
+                  {slide.id === 'cpr' && (
+                    <ChatCPRSlide
+                      isExport={true}
+                      results={results}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
                   )}
 
-                  {slideIndex === 10 && (
-                    <div className="flex flex-col justify-between h-full py-12 text-left w-full">
-                      <div className="space-y-8">
-                        <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
-                          The Great Silence: What was your longest dry spell this year?
-                        </p>
-                        {results.drySpell ? (
-                          <div className="space-y-0">
-                            <h2 className="font-sans text-[10rem] font-extrabold tracking-tighter leading-none text-neutral-900">
-                              {results.drySpell.days} Days
-                            </h2>
-                            <p className="text-lg uppercase tracking-widest font-mono text-neutral-500 font-bold mt-2">
-                              of absolute silence
-                            </p>
-                          </div>
-                        ) : (
-                          <p className="text-2xl font-light italic">No silence periods detected.</p>
-                        )}
-                      </div>
-                      {results.drySpell && (
-                        <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg z-20 my-auto text-center w-full">
-                          <span className="text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase block mb-1">LONG TIME NO CHAT</span>
-                          <span className="font-sans font-bold text-neutral-800 text-4xl">
-                            {results.drySpell.startDate} — {results.drySpell.endDate}
-                          </span>
-                          <p className="text-xl text-neutral-500 mt-4 font-serif italic">
-                            "You two literally forgot each other existed."
-                          </p>
-                        </div>
-                      )}
-                      <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
-                        Your longest consecutive gap of absolute silence. No texts, no memes, no voice notes. Just pure peace.
-                      </p>
-                    </div>
+                  {slide.id === 'dryspell' && (
+                    <DrySpellSlide
+                      isExport={true}
+                      results={results}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
                   )}
 
-                  {slideIndex === 11 && (
-                    <div className="flex flex-col justify-between h-full py-12 text-left w-full">
-                      <div className="space-y-8">
-                        <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
-                          A picture is worth a thousand words, and your gallery proves it.
-                        </p>
-                        <div className="space-y-0">
-                          <h2 className="font-sans text-[10rem] font-extrabold tracking-tighter leading-none text-neutral-900">
-                            {results.topMediaMogul?.count || 0}
-                          </h2>
-                          <p className="text-lg uppercase tracking-widest font-mono text-neutral-500 font-bold mt-2">
-                            media files shared by {results.topMediaMogul?.name || 'N/A'}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* PDF Card Slide 11 */}
-                      {isGroup ? (
-                        <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-8 w-full">
-                          <div className="flex justify-between items-center text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                            <span>GALLERY SPLIT</span>
-                            <span className="text-[#0066FF] font-bold">
-                              {(Object.values(results.mediaCounts).reduce((a, b) => a + b, 0) || 0).toLocaleString()} files
-                            </span>
-                          </div>
-
-                          <div className="space-y-6">
-                            {results.sendersList.slice(0, 3).map((sender, idx) => {
-                              const count = results.mediaCounts[sender] || 0;
-                              const totalMedia = Object.values(results.mediaCounts).reduce((a, b) => a + b, 0) || 1;
-                              const pct = Math.round((count / totalMedia) * 100);
-                              const barColors = ['bg-[#0066FF]', 'bg-[#E95D3C]', 'bg-[#10B981]'];
-
-                              return (
-                                <div key={sender} className="space-y-2">
-                                  <div className="flex justify-between text-xl font-semibold text-neutral-800">
-                                    <span className="truncate max-w-[450px]">{idx + 1}. {sender}</span>
-                                    <span className="font-mono text-base text-neutral-500 font-bold">{count.toLocaleString()} ({pct}%)</span>
-                                  </div>
-                                  <div className="h-4 w-full bg-neutral-100 rounded-full overflow-hidden">
-                                    <div className={`h-full ${barColors[idx] || 'bg-neutral-400'}`} style={{ width: `${pct}%` }} />
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-8 w-full">
-                          <div className="flex justify-between items-center text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                            <span>GALLERY SPLIT</span>
-                            <span className="text-[#0066FF] font-extrabold">{mediaPercentA}% vs {mediaPercentB}%</span>
-                          </div>
-
-                          <div className="h-8 w-full bg-neutral-100 rounded-full overflow-hidden flex">
-                            <div className="h-full bg-[#0066FF]" style={{ width: `${mediaPercentA}%` }} />
-                            <div className="h-full bg-[#E95D3C]" style={{ width: `${mediaPercentB}%` }} />
-                          </div>
-
-                          <div className="flex justify-between text-2xl font-sans">
-                            <div className="flex flex-col">
-                              <span className="font-semibold text-neutral-800 truncate max-w-[300px]">{senderA}</span>
-                              <span className="text-lg text-neutral-500 font-mono mt-1">{mediaA.toLocaleString()} files</span>
-                            </div>
-                            <div className="flex flex-col items-end">
-                              <span className="font-semibold text-neutral-800 truncate max-w-[300px]">{senderB}</span>
-                              <span className="text-lg text-neutral-500 font-mono mt-1">{mediaB.toLocaleString()} files</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
-                        Counting all photos, stickers, voice notes, and media attachments sent in this chat.
-                      </p>
-                    </div>
+                  {slide.id === 'mediamogul' && (
+                    <MediaMogulSlide
+                      isGroup={isGroup}
+                      isExport={true}
+                      results={results}
+                      senderA={senderA}
+                      senderB={senderB}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
                   )}
 
-                  {slideIndex === 12 && (
-                    <div className="flex flex-col justify-between h-full py-12 text-left w-full">
-                      <div className="space-y-8">
-                        <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
-                          {isGroup ? "Who relies on stickers and attachments rather than typing?" : "The Media Spammer: Who communicates entirely in stickers and GIFs?"}
-                        </p>
-                      </div>
-                      <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-6 w-full my-auto">
-                        <div className="text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                          MEDIA-TO-TEXT RATIO
-                        </div>
-                        <div className="space-y-6">
-                          {results.sendersList.slice(0, 3).map((sender) => {
-                            const ratio = results.mediaRatios[sender] || 0;
-                            return (
-                              <div key={sender} className="space-y-2 border-b pb-4 border-neutral-100">
-                                <div className="flex justify-between text-2xl font-semibold text-neutral-800">
-                                  <span className="truncate max-w-[450px]">{sender}</span>
-                                  <span className="font-mono text-emerald-600 font-bold">{ratio}% media</span>
-                                </div>
-                                <div className="h-4 w-full bg-neutral-100 rounded-full overflow-hidden">
-                                  <div className="h-full bg-emerald-500" style={{ width: `${ratio}%` }} />
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                      <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
-                        Percentage of sent messages that contain media attachments rather than plain text.
-                      </p>
-                    </div>
+                  {slide.id === 'textmediaratio' && (
+                    <TextMediaRatioSlide
+                      isGroup={isGroup}
+                      isExport={true}
+                      results={results}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
                   )}
 
-                  {slideIndex === 13 && (
-                    <div className="flex flex-col justify-between h-full py-12 text-left w-full">
-                      <div className="space-y-8">
-                        <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
-                          Sometimes typing is too much work. Your audio archives speak volumes.
-                        </p>
-                        <div className="space-y-0">
-                          <h2 className="font-sans text-[10rem] font-extrabold tracking-tighter leading-none text-neutral-900">
-                            {results.totalVoiceNotesCount.toLocaleString()}
-                          </h2>
-                          <p className="text-lg uppercase tracking-widest font-mono text-neutral-500 font-bold mt-2">
-                            voice notes sent • {formatDuration(results.totalVoiceNotesDuration * 1000)}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* PDF Card Slide 13 */}
-                      {isGroup ? (
-                        <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-8 w-full">
-                          <div className="flex justify-between items-center text-xl font-mono tracking-wider text-purple-600 font-bold uppercase">
-                            <span>VOICE NOTE SPLIT</span>
-                            <span className="text-purple-600 font-bold">{results.totalVoiceNotesCount} files</span>
-                          </div>
-
-                          <div className="space-y-6">
-                            {results.sendersList.slice(0, 3).map((sender, idx) => {
-                              const count = results.voiceNoteCounts[sender] || 0;
-                              const pct = results.totalVoiceNotesCount > 0 ? Math.round((count / results.totalVoiceNotesCount) * 100) : 0;
-                              const barColors = ['bg-purple-600', 'bg-[#E95D3C]', 'bg-[#10B981]'];
-
-                              return (
-                                <div key={sender} className="space-y-2">
-                                  <div className="flex justify-between text-xl font-semibold text-neutral-800">
-                                    <span className="truncate max-w-[450px]">{idx + 1}. {sender}</span>
-                                    <span className="font-mono text-base text-neutral-500 font-bold">{count.toLocaleString()} ({pct}%)</span>
-                                  </div>
-                                  <div className="h-4 w-full bg-neutral-100 rounded-full overflow-hidden">
-                                    <div className={`h-full ${barColors[idx] || 'bg-neutral-400'}`} style={{ width: `${pct}%` }} />
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-8 w-full">
-                          <div className="flex justify-between items-center text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
-                            <span>VOICE NOTE SPLIT</span>
-                            <span className="text-purple-600 font-extrabold">
-                              {Math.round(((results.voiceNoteCounts[senderA] || 0) / (results.totalVoiceNotesCount || 1)) * 100)}% vs {100 - Math.round(((results.voiceNoteCounts[senderA] || 0) / (results.totalVoiceNotesCount || 1)) * 100)}%
-                            </span>
-                          </div>
-
-                          <div className="h-8 w-full bg-neutral-100 rounded-full overflow-hidden flex">
-                            <div className="h-full bg-purple-600" style={{ width: `${Math.round(((results.voiceNoteCounts[senderA] || 0) / (results.totalVoiceNotesCount || 1)) * 100)}%` }} />
-                            <div className="h-full bg-[#E95D3C]" style={{ width: `${100 - Math.round(((results.voiceNoteCounts[senderA] || 0) / (results.totalVoiceNotesCount || 1)) * 100)}%` }} />
-                          </div>
-
-                          <div className="flex justify-between text-2xl font-sans">
-                            <div className="flex flex-col">
-                              <span className="font-semibold text-neutral-800 truncate max-w-[300px]">{senderA}</span>
-                              <span className="text-lg text-neutral-500 font-mono mt-1">{(results.voiceNoteCounts[senderA] || 0).toLocaleString()} VN</span>
-                            </div>
-                            <div className="flex flex-col items-end">
-                              <span className="font-semibold text-neutral-800 truncate max-w-[300px]">{senderB}</span>
-                              <span className="text-lg text-neutral-500 font-mono mt-1">{(results.voiceNoteCounts[senderB] || 0).toLocaleString()} VN</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="bg-white/90 border border-purple-100 rounded-[32px] p-8 shadow-md flex items-center gap-6 w-full">
-                        <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center text-3xl text-purple-600 font-bold shrink-0">
-                          🎙️
-                        </div>
-                        <div className="flex flex-col text-left">
-                          <span className="text-xs font-mono font-bold text-purple-600 uppercase tracking-widest leading-none">LONGEST MONOLOGUE</span>
-                          {results.longestVoiceNote ? (
-                            <>
-                              <span className="text-xl font-sans font-extrabold text-neutral-800 truncate mt-2">
-                                {results.longestVoiceNote.name}'s voice note
-                              </span>
-                              <span className="text-sm font-mono text-neutral-500 font-bold mt-1">
-                                Lasted {formatDuration(results.longestVoiceNote.durationSec * 1000)}
-                              </span>
-                            </>
-                          ) : (
-                            <span className="text-sm text-neutral-500 italic mt-1">No voice notes parsed</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                  {slide.id === 'voicenotes' && (
+                    <VoiceNotesSlide
+                      isGroup={isGroup}
+                      isExport={true}
+                      results={results}
+                      senderA={senderA}
+                      senderB={senderB}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
                   )}
 
-                  {slideIndex === 14 && (
-                    <div className="flex flex-col justify-between h-full py-12 text-left w-full">
-                      <div className="space-y-8">
-                        <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
-                          Your signature reactions and favorite words of the year.
-                        </p>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-8 my-auto w-full z-20">
-                        {/* Sender A */}
-                        <div className="bg-white/95 rounded-[40px] p-8 space-y-6 shadow-xl border border-neutral-100 flex flex-col justify-between h-[450px]">
-                          <div className="border-b pb-4 border-neutral-105">
-                            <h4 className="font-sans text-3xl font-bold truncate text-neutral-800">{senderA}</h4>
-                            <div className="flex items-center gap-3 mt-2">
-                              <span className="text-6xl">{results.emojiDependency[senderA]?.emoji || "❤️"}</span>
-                              <span className="text-sm font-mono uppercase tracking-wider text-neutral-500 font-semibold">x{results.emojiDependency[senderA]?.count || 0}</span>
-                            </div>
-                          </div>
-                          <div className="space-y-3">
-                            <span className="text-xs font-mono uppercase tracking-wider block font-bold text-neutral-400">TOP DIALECT</span>
-                            {(results.vocabulary[senderA] || []).slice(0, 3).map((w, idx) => (
-                              <div key={w.word} className="flex justify-between text-lg items-center text-neutral-700">
-                                <span className="capitalize truncate font-medium">{idx + 1}. {w.word}</span>
-                                <span className="font-mono text-neutral-500">{w.count}x</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Sender B */}
-                        <div className="bg-[#1C1A17] rounded-[40px] p-8 space-y-6 shadow-xl flex flex-col justify-between h-[450px] text-white">
-                          <div className="border-b pb-4 border-white/10">
-                            <h4 className="font-sans text-3xl font-bold truncate text-neutral-100">{senderB}</h4>
-                            <div className="flex items-center gap-3 mt-2">
-                              <span className="text-6xl">{results.emojiDependency[senderB]?.emoji || "❤️"}</span>
-                              <span className="text-sm font-mono uppercase tracking-wider text-neutral-500 font-semibold">x{results.emojiDependency[senderB]?.count || 0}</span>
-                            </div>
-                          </div>
-                          <div className="space-y-3">
-                            <span className="text-xs font-mono uppercase tracking-wider block font-bold text-neutral-500">TOP DIALECT</span>
-                            {(results.vocabulary[senderB] || []).slice(0, 3).map((w, idx) => (
-                              <div key={w.word} className="flex justify-between text-lg items-center text-neutral-300">
-                                <span className="capitalize truncate font-medium">{idx + 1}. {w.word}</span>
-                                <span className="font-mono text-neutral-400">{w.count}x</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
-                        {isGroup ? "Everyone speaks their own unique dialect. What a vibrant dynamic!" : "You both speak your own unique dialect. What a perfect dynamic!"}
-                      </p>
-                    </div>
+                  {slide.id === 'vocabulary' && (
+                    <VocabularySlide
+                      isGroup={isGroup}
+                      isExport={true}
+                      results={results}
+                      senderA={senderA}
+                      senderB={senderB}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
                   )}
 
-                  {slideIndex === 15 && (
-                    <div className="flex flex-col justify-between h-full py-12 text-left w-full">
-                      <div className="space-y-8">
-                        <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
-                          Slang Lord vs. Corporate Dictator: Who writes like they are cold-emailing KPMG?
-                        </p>
-                      </div>
-                      <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-6 w-full my-auto">
-                        <div className="text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase block mb-1">DIALECT BREAKDOWN</div>
-                        <div className="grid grid-cols-2 gap-8">
-                          <div className="space-y-4 border-r pr-4 border-neutral-100">
-                            <span className="text-lg font-mono font-bold text-yellow-600 uppercase">💬 SLANG TERMS</span>
-                            {results.sendersList.slice(0, 3).map((sender) => (
-                              <div key={sender} className="flex justify-between text-xl text-neutral-700">
-                                <span className="truncate max-w-[200px]">{sender}</span>
-                                <span className="font-mono font-bold">{results.slangCounts[sender] || 0}</span>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="space-y-4 pl-2">
-                            <span className="text-lg font-mono font-bold text-blue-600 uppercase">💼 CORPORATE TERMS</span>
-                            {results.sendersList.slice(0, 3).map((sender) => (
-                              <div key={sender} className="flex justify-between text-xl text-neutral-700">
-                                <span className="truncate max-w-[200px]">{sender}</span>
-                                <span className="font-mono font-bold">{results.corporateCounts[sender] || 0}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
-                        One of you communicates entirely in text slang acronyms (fr, rn, idk). The other ends every message with full punctuation.
-                      </p>
-                    </div>
+                  {slide.id === 'slangcorporate' && (
+                    <SlangCorporateSlide
+                      isExport={true}
+                      results={results}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
                   )}
 
-                  {slideIndex === 16 && (
-                    <div className="flex flex-col justify-between h-full py-12 text-left w-full">
-                      <div className="space-y-8">
-                        <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
-                          Who is Always Panicking? The Punctuation Chain Count.
-                        </p>
-                      </div>
-                      <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-6 w-full my-auto">
-                        <div className="text-xl font-mono tracking-wider text-red-500 font-bold uppercase">PANIC INDEX (??? or !!! counts)</div>
-                        <div className="space-y-6">
-                          {results.sendersList.slice(0, 3).map((sender) => {
-                            const count = results.panicCounts[sender] || 0;
-                            return (
-                              <div key={sender} className="flex justify-between items-center text-2xl font-semibold text-neutral-800 border-b pb-4 border-neutral-100">
-                                <span className="truncate max-w-[450px]">{sender}</span>
-                                <span className="font-mono text-red-600 font-bold">{count} marks</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                      <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
-                        When things go sideways, someone loses their mind first. Total pure punctuation chains sent.
-                      </p>
-                    </div>
+                  {slide.id === 'panicstation' && (
+                    <PanicStationSlide
+                      isExport={true}
+                      results={results}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
                   )}
 
-                  {slideIndex === 17 && (
-                    <div className="flex flex-col justify-between h-full py-12 text-left w-full">
-                      <div className="space-y-8">
-                        <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
-                          Your Word Hyper-Fixation Phase: A linguistic spike that disappeared.
-                        </p>
-                      </div>
-                      {results.hyperFixation ? (
-                        <div className="bg-white/40 border border-white/20 rounded-[40px] p-10 shadow-lg z-20 my-auto text-center w-full">
-                          <h3 className="font-mono text-lg uppercase tracking-widest text-neutral-500 font-bold">IN {results.hyperFixation.monthName.toUpperCase()} YOU WENT CRAZY FOR</h3>
-                          <h2 className="font-sans text-6xl font-extrabold tracking-tighter text-pink-600 my-4">
-                            "{results.hyperFixation.word}"
-                          </h2>
-                          <p className="text-xl text-neutral-500 font-mono">
-                            Used {results.hyperFixation.count} times in one month
-                          </p>
-                        </div>
-                      ) : (
-                        <p className="text-2xl font-light italic">No hyper-fixations detected.</p>
-                      )}
-                      <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
-                        The single word that had a massive percentage spike in one specific month but virtually disappeared afterward. What happened there?
-                      </p>
-                    </div>
+                  {slide.id === 'hyperfixation' && (
+                    <HyperFixationSlide
+                      isExport={true}
+                      results={results}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
                   )}
 
-                  {slideIndex === 18 && (() => {
-                    const aura = calculateChatAura(results);
-                    if (!aura) return null;
+                  {slide.id === 'chataura' && (
+                    <ChatAuraSlide
+                      isExport={true}
+                      results={results}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
+                  )}
 
-                    const config = {
-                      midnight: {
-                        title: "Night Owl Violet",
-                        gradient: "from-violet-600 via-indigo-700 to-blue-900",
-                        desc: "Mysterious, reflective, late-night deep talks. Your chat thrives under the cover of darkness, fueled by midnight monologues and deep-night disclosures.",
-                        vibe: "Reflective & Intimate"
-                      },
-                      active: {
-                        title: "Daylight Flame",
-                        gradient: "from-orange-500 via-red-600 to-amber-500",
-                        desc: "High-energy, fast-paced, daytime chaos. You trigger lock-screens, cascade notifications, and communicate in rapid-fire bursts of excitement.",
-                        vibe: "Electric & Chaotic"
-                      },
-                      balanced: {
-                        title: "Zenith Emerald",
-                        gradient: "from-emerald-500 via-teal-600 to-blue-600",
-                        desc: "Calm, steady, balanced connection. A harmonious pace of chat, with reliable response rhythms and structured, meaningful engagement.",
-                        vibe: "Harmonious & Grounded"
-                      }
-                    }[aura.theme];
+                  {slide.id === 'heatmap' && (
+                    <HeatmapSlide
+                      isExport={true}
+                      results={results}
+                      scrubMonth={scrubMonth}
+                      setScrubMonth={setScrubMonth}
+                      setIsPaused={setIsPaused}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
+                  )}
 
-                    return (
-                      <div className="flex flex-col justify-between h-full py-12 text-left w-full relative overflow-hidden">
-                        <div className="space-y-8 z-10 w-full">
-                          <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-white">
-                            Your Sensory Visualization: What does your chat vibe feel like?
-                          </p>
-                        </div>
+                  {slide.id === 'developer' && (
+                    <DeveloperSlide
+                      isExport={true}
+                      results={results}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
+                  )}
 
-                        {/* Static Glow Orb in Background */}
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0">
-                          <div className={`w-[600px] h-[600px] rounded-full blur-[80px] opacity-75 bg-gradient-to-tr ${config.gradient}`} />
-                        </div>
-
-                        {/* Frosted Lens Card */}
-                        <div className="bg-white/10 border border-white/20 rounded-[45px] p-12 shadow-2xl z-10 w-[750px] my-auto mx-auto flex flex-col gap-6 text-white" style={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}>
-                          <div className="border-b border-white/10 pb-4">
-                            <span className="text-sm font-mono tracking-widest text-[#8B5CF6] font-bold uppercase block">YOUR CHAT AURA</span>
-                            <h2 className="font-sans text-6xl font-extrabold tracking-tight mt-2 text-white">
-                              {config.title}
-                            </h2>
-                            <span className="inline-block mt-4 text-xs font-bold uppercase tracking-wider bg-white/10 px-4 py-1.5 rounded-full border border-white/5">
-                              Vibe: {config.vibe}
-                            </span>
-                          </div>
-
-                          <p className="text-xl leading-relaxed text-neutral-200 font-sans font-light">
-                            {config.desc}
-                          </p>
-                        </div>
-
-                        {/* Stats breakdown */}
-                        <div className="bg-black/25 rounded-[32px] p-8 border border-white/5 space-y-3 z-10 w-full text-base text-neutral-300 font-sans max-w-[800px]">
-                          <div className="flex justify-between items-center border-b pb-3 border-white/5">
-                            <span className="font-mono uppercase text-xs text-neutral-400 tracking-wider">MIDNIGHT CONVERSATIONS</span>
-                            <span className="font-mono font-bold text-neutral-100 text-lg">{Math.round(aura.midnightRatio * 100)}% of chat</span>
-                          </div>
-                          <div className="flex justify-between items-center border-b pb-3 border-white/5">
-                            <span className="font-mono uppercase text-xs text-neutral-400 tracking-wider">NOTIFICATION BOMBS</span>
-                            <span className="font-mono font-bold text-neutral-100 text-lg">{aura.totalBombs} lock-screen spikes</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="font-mono uppercase text-xs text-[#8B5CF6] tracking-wider font-bold">PULSE RATE FREQUENCY</span>
-                            <span className="font-mono font-bold text-[#8B5CF6] text-lg">{Math.min(3, 1 + (aura.panicRatio * 15)).toFixed(1)}x speed</span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {slideIndex === 19 && (() => {
-                    const timeline = results.monthlyTimeline || [];
-                    const maxMonthCount = Math.max(...timeline.map(t => t.totalCount || 1));
-
-                    let maxVal = -1;
-                    let maxIdx = 0;
-                    timeline.forEach((t, idx) => {
-                      if (t.totalCount > maxVal) {
-                        maxVal = t.totalCount;
-                        maxIdx = idx;
-                      }
-                    });
-                    const activeMonth = timeline[maxIdx];
-
-                    return (
-                      <div className="flex flex-col justify-between h-full py-12 text-left w-full relative z-20">
-                        <div className="space-y-8 z-10 w-full">
-                          <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
-                            Your Chat Heatmap: Scrub over the months to reveal memories.
-                          </p>
-                        </div>
-
-                        {/* Floating Peak Month Tooltip Memory Flashback Card */}
-                        <div className="w-[700px] bg-white rounded-[40px] p-8 shadow-2xl border border-neutral-100 flex flex-col gap-5 mx-auto my-auto z-30">
-                          <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
-                            <div>
-                              <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-wider block">YEAR ABSOLUTE PEAK</span>
-                              <h4 className="text-2xl font-sans font-extrabold text-neutral-800 leading-none mt-1">{activeMonth?.peakDay?.dateStr || 'N/A'}</h4>
-                            </div>
-                            <span className="font-mono text-xl font-bold text-neutral-500 bg-neutral-100 px-4 py-1.5 rounded-full">{activeMonth?.peakDay?.count || 0} texts</span>
-                          </div>
-
-                          {/* Flashback message bubble */}
-                          <div className="flex flex-col text-left bg-orange-50/50 rounded-[28px] p-6 border border-orange-100/50">
-                            <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-widest leading-none mb-2">FLASHBACK MESSAGE</span>
-                            <p className="text-xs font-mono text-neutral-500 uppercase tracking-wider mb-1">{activeMonth?.peakDay?.flashback?.sender || 'N/A'}</p>
-                            <p className="text-lg font-serif italic leading-snug text-neutral-850">
-                              "${activeMonth?.peakDay?.flashback?.message || 'N/A'}"
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Static Bar Chart */}
-                        <div className="space-y-4 w-full z-20 max-w-[900px] mx-auto">
-                          <div className="h-64 flex items-end justify-between gap-3 w-full bg-neutral-900/5 rounded-[36px] p-8 border border-black/5">
-                            {timeline.map((t, idx) => {
-                              const heightPct = Math.max(10, Math.round((t.totalCount / maxMonthCount) * 100));
-                              const isActive = idx === maxIdx;
-                              return (
-                                <div key={t.monthIndex} className="flex-grow flex flex-col items-center h-full justify-end">
-                                  <div
-                                    className="w-full rounded-t-xl"
-                                    style={{
-                                      height: `${heightPct}%`,
-                                      backgroundColor: isActive ? '#E95D3C' : 'rgba(47, 35, 29, 0.2)'
-                                    }}
-                                  />
-                                  <span className="text-xs font-mono mt-2 font-bold" style={{ color: isActive ? '#E95D3C' : '#7A6458' }}>
-                                    {t.monthName.substring(0, 3)}
-                                  </span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-
-                        <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
-                          Timeline represents monthly text volumes. Scrubbing highlights the peak day of the month and pulls a random flashback message sent on that day.
-                        </p>
-                      </div>
-                    );
-                  })()}
-
-                  {slideIndex === 20 && (
-                    <div className="flex flex-col justify-between h-full py-12 text-left w-full items-center">
-                      <div className="space-y-4 text-left w-full">
-                        <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
-                          Now you're wrapping the year. Here is your conversational retro.
-                        </p>
-                      </div>
-
-                      {/* Summary Table Card */}
-                      <div className="border p-12 rounded-[45px] space-y-8 shadow-2xl w-[700px] relative overflow-hidden bg-white/95 z-20" style={{ borderColor: 'rgba(0,0,0,0.02)' }}>
-                        <div className="absolute top-4 left-4 w-4 h-4 border-t border-l border-neutral-400" />
-                        <div className="absolute top-4 right-4 w-4 h-4 border-t border-r border-neutral-400" />
-                        <div className="absolute bottom-4 left-4 w-4 h-4 border-b border-l border-neutral-400" />
-                        <div className="absolute bottom-4 right-4 w-4 h-4 border-b border-r border-neutral-400" />
-
-                        <div className="text-center border-b pb-6" style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
-                          <span className="font-serif italic text-3xl font-bold text-neutral-800">2026 Retro Summary</span>
-                        </div>
-
-                        <div className="space-y-5 text-lg text-neutral-700 font-sans">
-                          <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
-                            <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">MESSAGES</span>
-                            <span className="font-mono font-bold text-neutral-800 text-2xl">{results.totalMessages.toLocaleString()}</span>
-                          </div>
-
-                          <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
-                            <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">DAYS TEXTING</span>
-                            <span className="font-serif italic font-medium text-neutral-800 text-2xl">{results.longevityDays} Days</span>
-                          </div>
-
-                          <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
-                            <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">👑 THE YAPPER</span>
-                            <span className="font-serif font-medium text-neutral-800 text-2xl">{results.yapper?.name || 'N/A'}</span>
-                          </div>
-
-                          <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
-                            <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">MAX REPLY GAP</span>
-                            <span className="font-mono font-bold text-neutral-800 text-xl">
-                              {results.theGhoster ? formatDuration(results.theGhoster.gapMs) : '0 mins'}
-                            </span>
-                          </div>
-
-                          <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
-                            <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">PEAK HOUR</span>
-                            <span className="font-serif text-xl font-medium text-neutral-800">{results.peakTraffic.text}</span>
-                          </div>
-
-                          {results.totalVoiceNotesCount > 0 && (
-                            <>
-                              <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
-                                <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">🎙️ VOICE NOTES</span>
-                                <span className="font-mono font-bold text-neutral-800 text-2xl">
-                                  {results.totalVoiceNotesCount} ({formatDuration(results.totalVoiceNotesDuration * 1000)})
-                                </span>
-                              </div>
-
-                              <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
-                                <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">👑 PODCASTER</span>
-                                <span className="font-serif font-medium text-neutral-800 text-2xl truncate max-w-[320px]">
-                                  {results.topVoiceNoteSender?.name || 'N/A'} ({results.topVoiceNoteSender?.count} VNs)
-                                </span>
-                              </div>
-
-                              <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
-                                <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">⏱️ LONGEST VN</span>
-                                <span className="font-serif font-medium text-neutral-800 text-2xl truncate max-w-[320px]">
-                                  {results.longestVoiceNote ? `${results.longestVoiceNote.name} (${formatDuration(results.longestVoiceNote.durationSec * 1000)})` : 'N/A'}
-                                </span>
-                              </div>
-                            </>
-                          )}
-
-                          <div className="flex justify-between items-center">
-                            <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">TOP EMOJIS</span>
-                            <span className="flex gap-4 font-medium text-neutral-800 text-xl">
-                              <span>{senderA}: {results.emojiDependency[senderA]?.emoji || "❤️"}</span>
-                              <span>{senderB}: {results.emojiDependency[senderB]?.emoji || "❤️"}</span>
-                              {isGroup && senderC && <span>{senderC}: {results.emojiDependency[senderC]?.emoji || "❤️"}</span>}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                  {slide.id === 'summary' && (
+                    <SummarySlide
+                      isGroup={isGroup}
+                      isExport={true}
+                      results={results}
+                      senderA={senderA}
+                      senderB={senderB}
+                      senderC={senderC}
+                      staggerContainer={staggerContainer}
+                      slideFadeUp={slideFadeUp}
+                    />
                   )}
 
                 </div>
@@ -4374,6 +2408,140 @@ function App() {
         </div>
       )}
 
+      {/* Feedback Form Modal */}
+      <AnimatePresence>
+        {showFeedbackModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-[#090D16]/95 border border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl relative text-white"
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => {
+                  setShowFeedbackModal(false);
+                  setFeedbackStatus('idle');
+                  setIsPaused(false);
+                }}
+                className="absolute top-4 right-4 text-neutral-400 hover:text-white transition-colors duration-200 cursor-pointer"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-violet-600/20 flex items-center justify-center text-violet-400">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-sans font-bold">Feedback Form</h3>
+                    <p className="text-xs text-neutral-400">We would love to hear your thoughts and improve!</p>
+                  </div>
+                </div>
+
+                {feedbackStatus === 'success' ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-center py-8 space-y-3"
+                  >
+                    <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-3xl">
+                      ✓
+                    </div>
+                    <h4 className="text-lg font-bold">Thank You!</h4>
+                    <p className="text-sm text-neutral-300">Your feedback has been successfully submitted. We appreciate your support!</p>
+                    <button
+                      onClick={() => {
+                        setShowFeedbackModal(false);
+                        setFeedbackStatus('idle');
+                        setIsPaused(false);
+                      }}
+                      className="mt-4 bg-neutral-800 hover:bg-neutral-700 text-white font-semibold py-2 px-6 rounded-xl transition-all duration-200 cursor-pointer"
+                    >
+                      Close
+                    </button>
+                  </motion.div>
+                ) : (
+                  <form onSubmit={handleFeedbackSubmit} className="space-y-4 pt-2">
+                    <p className="text-xs text-neutral-300 italic bg-white/5 border border-white/5 p-3 rounded-2xl leading-relaxed">
+                      Please let us know about any issues or bugs you faced while using the analyzer, so we can try to improve it in the future.
+                    </p>
+
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">Name</label>
+                      <input
+                        type="text"
+                        required
+                        value={feedbackName}
+                        onChange={(e) => setFeedbackName(e.target.value)}
+                        placeholder="Your name"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-sans focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all duration-200 text-white placeholder-neutral-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">Email Address</label>
+                      <input
+                        type="email"
+                        required
+                        value={feedbackEmail}
+                        onChange={(e) => setFeedbackEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-sans focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all duration-200 text-white placeholder-neutral-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">Issues & Suggestions</label>
+                      <textarea
+                        required
+                        rows="4"
+                        value={feedbackIssue}
+                        onChange={(e) => setFeedbackIssue(e.target.value)}
+                        placeholder="Describe the issues or improvements..."
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-sans focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all duration-200 text-white placeholder-neutral-500 resize-none"
+                      />
+                    </div>
+
+                    {feedbackStatus === 'error' && (
+                      <p className="text-xs text-red-400 font-medium">{feedbackError}</p>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={feedbackStatus === 'loading'}
+                      className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 disabled:opacity-50 text-white font-sans font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer mt-2"
+                    >
+                      {feedbackStatus === 'loading' ? (
+                        <>
+                          <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          Submitting...
+                        </>
+                      ) : (
+                        'Submit Feedback'
+                      )}
+                    </button>
+                  </form>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

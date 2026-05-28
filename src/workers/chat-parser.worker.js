@@ -4,8 +4,10 @@
 // iOS: "[27/05/2026, 15:47:18] John: Hello"
 // Android: "27/05/2026, 15:47 - John: Hello"
 // Note: AM/PM can have normal spaces, thin spaces (\u202f, \u2009), or no space. We make the comma optional to be extra robust.
-const iosRegex = /^\[(\d{1,4}[./-]\d{1,2}[./-]\d{2,4})(?:,\s*|\s+)(\d{1,2}:\d{2}(?::\d{2})?(?:\s*[aApP][mM]|\s*[\u202f\u2009a-zA-Z]{2})?)\]\s*(.*)$/;
-const androidRegex = /^(\d{1,4}[./-]\d{1,2}[./-]\d{2,4})(?:,\s*|\s+)(\d{1,2}:\d{2}(?::\d{2})?(?:\s*[aApP][mM]|\s*[\u202f\u2009a-zA-Z]{2})?)\s*-\s*(.*)$/;
+// Unified date and message regex patterns to match both iOS and Android styles across various regions
+// Matches optional leading bracket, date (with slashes, dots, or dashes), space/comma/thin spaces, time (colon/dot separated, optional seconds, optional AM/PM or language variants)
+const dateRegex = /^\[?(\d{1,4}[./-]\d{1,2}[./-]\d{2,4})(?:,\s*|\s+)(\d{1,2}[:.]\d{2}(?:[:.]\d{2})?(?:\s*(?:[aApP]\.?[mM]\.?|[^\s\d\]:.-]+))?)\]?\s*(?:-\s*)?/;
+const messageRegex = /^\[?(\d{1,4}[./-]\d{1,2}[./-]\d{2,4})(?:,\s*|\s+)(\d{1,2}[:.]\d{2}(?:[:.]\d{2})?(?:\s*(?:[aApP]\.?[mM]\.?|[^\s\d\]:.-]+))?)\]?\s*(?:-\s*)?(.+?):\s([\s\S]*)$/;
 
 // Comprehensive stop words list including chat abbreviations and WhatsApp media placeholders
 const stopWords = new Set([
@@ -17,12 +19,69 @@ const stopWords = new Set([
   "lol", "haha", "hahaha", "okay", "yep", "yeah", "yes", "nah", "ok", "hey", "hello", "hi", "pls", "please", "thanks", "thank", "bro", "dude", "guy", "guys", "dear", "dearer", "gonna", "wanna", "gotta", "lmao", "rofl", "omg", "idk", "btw", "tbh", "rn"
 ]);
 
+// Localized markers for Afternoon/Evening (PM) and Morning (AM) times
+const PM_MARKERS = ["pm", "p.m.", "오후", "下午", "अपराह्न", "म", "pop.", "nachm.", "p. m.", "pm."];
+const AM_MARKERS = ["am", "a.m.", "오전", "上午", "पूर्वाह्न", "ص", "dop.", "vorm.", "a. m.", "am."];
+
+// Set of common media file extensions to filter from word clouds/vocabulary analysis
+const fileExtensions = new Set([
+  "jpg", "jpeg", "png", "webp", "heic", "pdf", "mp4", "3gp", "m4a", "opus", "wav", "mp3", "gif", "zip", "txt", "doc", "docx", "xls", "xlsx", "ppt", "pptx"
+]);
+
+// Set of coding terms/HTML tags to filter from word clouds/vocabulary analysis
+const codingKeywords = new Set([
+  "div", "span", "img", "iframe", "canvas", "svg", "path", "button", "input", "textarea", "form",
+  "label", "select", "option", "table", "thead", "tbody", "tr", "td", "th", "br", "hr", "ul", "ol", "li",
+  "script", "style", "html", "body", "head", "meta", "link",
+  "const", "let", "var", "function", "func", "def", "class", "import", "export", "return", "null",
+  "undefined", "true", "false", "typeof", "instanceof", "async", "await", "yield", "try", "catch",
+  "finally", "throw", "error", "new", "this", "super", "extends", "implements", "interface",
+  "public", "private", "protected", "static", "void", "enum", "struct", "package", "namespace",
+  "using", "include", "require", "module", "exports", "print", "console", "log", "self", "args",
+  "kwargs", "lambda", "assert", "raise", "del", "pass", "with", "string", "number", "boolean",
+  "object", "array", "list", "dict", "set", "tuple", "float", "int", "double", "char", "bool",
+  "typedef", "define", "endif", "ifdef", "pragma", "importing"
+]);
+
+// Regex to match URLs (for stripping links from word clouds)
+const urlRegex = /https?:\/\/\S+|www\.\S+/gi;
+
+// Regex to capture WhatsApp deleted message indicator phrases across different major languages
+const deletedMessageRegex = /\b(?:this message was deleted|you deleted this message|mensaje eliminado|message supprimé|questo messaggio è stato eliminato|diese nachricht wurde gelöscht)\b/i;
+
+// Regex to capture WhatsApp media omission placeholders or file attachments (e.g. webp stickers, gifs, etc.)
+const mediaOmittedRegex = /<media omitted>|\[media omitted\]|^\s*[\w\s-]+\s+omitted\s*$/i;
+const attachmentRegex = /[<[]attached:\s*[^>\]]+[>\]]|[\w\s.-]+\.[\w]{2,6}\s*\(file attached\)/i;
+const customPlaceholderRegex = /^\[(sticker|gif|image|video|audio|voice)\]$/i;
+const pureFilenameRegex = /^\s*[\w\s.-]+\.(jpg|jpeg|png|webp|heic|pdf|mp4|3gp|m4a|opus|wav|mp3|gif|zip|txt|docx?|xlsx?|pptx?)\s*$/i;
+
+// Regex to capture typical attachment filenames (e.g. image.jpg, IMG_3490.HEIC, doc.pdf)
+const filenameRegex = /\b[\w-]+\.(jpg|jpeg|png|webp|heic|pdf|mp4|3gp|m4a|opus|wav|mp3|gif|zip|txt|docx?|xlsx?|pptx?)\b/i;
+
+// Helper to determine if a token is a media filename or file extension
+function isMediaFilenameOrExtension(rawWord, cleanWord) {
+  const lowerRaw = rawWord.toLowerCase();
+  const lowerClean = cleanWord.toLowerCase();
+  
+  if (fileExtensions.has(lowerClean)) {
+    return true;
+  }
+  
+  if (filenameRegex.test(lowerRaw)) {
+    return true;
+  }
+  
+  return false;
+}
+
 // Determine if date format is Day/Month/Year (DMY), Month/Day/Year (MDY), or Year/Month/Day (YMD)
 function detectDateFormat(lines) {
-  const limit = Math.min(lines.length, 500);
-  for (let i = 0; i < limit; i++) {
-    const line = lines[i];
-    const match = line.match(iosRegex) || line.match(androidRegex);
+  // Pass 1: Scan first 500 lines
+  const initialLimit = Math.min(lines.length, 500);
+  for (let i = 0; i < initialLimit; i++) {
+    const rawLine = lines[i];
+    const line = rawLine.replace(/[\u200e\u200f\u202a-\u202e]/g, '');
+    const match = line.match(dateRegex);
     if (match) {
       const dateStr = match[1];
       const parts = dateStr.split(/[./-]/);
@@ -30,23 +89,72 @@ function detectDateFormat(lines) {
         const p0 = parseInt(parts[0], 10);
         const p1 = parseInt(parts[1], 10);
         
-        // Year first
-        if (parts[0].length === 4) {
-          return 'YMD';
-        }
-        
-        // If first part is > 12, it must be the Day, so DD/MM/YYYY
-        if (p0 > 12 && p1 <= 12) {
-          return 'DMY';
-        }
-        // If second part is > 12, it must be the Day, so MM/DD/YYYY
-        if (p1 > 12 && p0 <= 12) {
-          return 'MDY';
+        if (parts[0].length === 4) return 'YMD';
+        if (p0 > 12 && p1 <= 12) return 'DMY';
+        if (p1 > 12 && p0 <= 12) return 'MDY';
+      }
+    }
+  }
+
+  // Pass 2: If first 500 lines are ambiguous, scan the entire file to find any resolving line
+  if (lines.length > 500) {
+    for (let i = 500; i < lines.length; i++) {
+      const rawLine = lines[i];
+      const line = rawLine.replace(/[\u200e\u200f\u202a-\u202e]/g, '');
+      const match = line.match(dateRegex);
+      if (match) {
+        const dateStr = match[1];
+        const parts = dateStr.split(/[./-]/);
+        if (parts.length === 3) {
+          const p0 = parseInt(parts[0], 10);
+          const p1 = parseInt(parts[1], 10);
+          
+          if (parts[0].length === 4) return 'YMD';
+          if (p0 > 12 && p1 <= 12) return 'DMY';
+          if (p1 > 12 && p0 <= 12) return 'MDY';
         }
       }
     }
   }
-  return 'DMY'; // Default to DMY if ambiguous
+
+  // Pass 3: Check day/month frequency variance for ambiguous short/medium chats
+  try {
+    const p0Unique = new Set();
+    const p1Unique = new Set();
+    for (let i = 0; i < lines.length; i++) {
+      const rawLine = lines[i];
+      const line = rawLine.replace(/[\u200e\u200f\u202a-\u202e]/g, '');
+      const match = line.match(dateRegex);
+      if (match) {
+        const dateStr = match[1];
+        const parts = dateStr.split(/[./-]/);
+        if (parts.length === 3) {
+          const p0 = parts[0];
+          const p1 = parts[1];
+          // Skip Year component
+          if (p0.length !== 4) {
+            p0Unique.add(p0);
+            p1Unique.add(p1);
+          }
+        }
+      }
+    }
+    if (p0Unique.size > p1Unique.size) {
+      return 'DMY'; // part0 changes daily, part1 is month
+    } else if (p1Unique.size > p0Unique.size) {
+      return 'MDY'; // part1 changes daily, part0 is month
+    }
+  } catch {
+    // Ignore and proceed to fallback
+  }
+
+  // Pass 4: Fallback to environment locale
+  const locale = (self.navigator && self.navigator.language) ? self.navigator.language : 'en-US';
+  if (locale.toLowerCase().startsWith('en-us')) {
+    return 'MDY';
+  }
+  
+  return 'DMY'; // Default to DMY for most of the world if still unresolved
 }
 
 // Convert date & time strings into a Date object
@@ -79,25 +187,42 @@ function parseDateTime(dateStr, timeStr, format) {
       year += year < 50 ? 2000 : 1900;
     }
     
-    // Clean and split time (handling AM/PM)
-    const timeClean = timeStr.trim().replace(/\s+/g, ' ');
-    const ampmMatch = timeClean.match(/([aApP][mM])/);
+    // Clean and split time (handling localized AM/PM)
+    const cleanTime = timeStr.trim().toLowerCase().replace(/\s+/g, ' ');
     
-    const numericalTime = timeClean.replace(/[aApP][mM]/, '').trim();
-    const timeParts = numericalTime.split(':');
+    let isPM = false;
+    let isAM = false;
+    
+    for (const marker of PM_MARKERS) {
+      if (cleanTime.includes(marker)) {
+        isPM = true;
+        break;
+      }
+    }
+    
+    if (!isPM) {
+      for (const marker of AM_MARKERS) {
+        if (cleanTime.includes(marker)) {
+          isAM = true;
+          break;
+        }
+      }
+    }
+    
+    // Strip all localized time words/letters to parse numerical components cleanly
+    const numericalTime = cleanTime.replace(/[^\d:.]/g, '').trim();
+    // Split on either colon or dot to support European/regional formats
+    const timeParts = numericalTime.split(/[:.]/);
     
     let hours = parseInt(timeParts[0], 10);
     let minutes = parseInt(timeParts[1], 10);
     let seconds = timeParts[2] ? parseInt(timeParts[2], 10) : 0;
     
-    if (ampmMatch) {
-      const ampm = ampmMatch[1].toLowerCase();
-      if (ampm === 'pm' && hours < 12) {
-        hours += 12;
-      }
-      if (ampm === 'am' && hours === 12) {
-        hours = 0;
-      }
+    if (isPM && hours < 12) {
+      hours += 12;
+    }
+    if (isAM && hours === 12) {
+      hours = 0;
     }
     
     const d = new Date(year, month, day, hours, minutes, seconds);
@@ -124,44 +249,94 @@ self.onmessage = async (e) => {
     const totalLinesCount = lines.length;
     
     const format = detectDateFormat(lines);
-    const parsedMessages = [];
+    let parsedMessages = [];
+    let currentMessage = null;
     
     self.postMessage({ status: 'progress', progress: 40, message: 'Parsing messages...' });
     
     for (let i = 0; i < totalLinesCount; i++) {
-      const line = lines[i];
-      if (!line.trim()) continue;
+      const rawLine = lines[i];
+      // Clean invisible Unicode directional/formatting control characters (frequent in iOS exports)
+      const line = rawLine.replace(/[\u200e\u200f\u202a-\u202e]/g, '');
+      if (!line.trim()) {
+        if (currentMessage) {
+          currentMessage.message += '\n' + line;
+        }
+        continue;
+      }
       
       if (i > 0 && i % 100000 === 0) {
         const percent = Math.floor(40 + (i / totalLinesCount) * 30);
         self.postMessage({ status: 'progress', progress: percent, message: `Parsed ${i.toLocaleString()} lines...` });
       }
       
-      const match = line.match(iosRegex) || line.match(androidRegex);
+      const isNewMessage = dateRegex.test(line);
       
-      if (match) {
-        const dateStr = match[1];
-        const timeStr = match[2];
-        const rawContent = match[3];
+      if (isNewMessage) {
+        // Push the previous message from buffer to the final list
+        if (currentMessage) {
+          parsedMessages.push(currentMessage);
+          currentMessage = null;
+        }
         
-        const colonIdx = rawContent.indexOf(': ');
-        if (colonIdx !== -1) {
-          const sender = rawContent.substring(0, colonIdx).trim();
-          const message = rawContent.substring(colonIdx + 2);
+        // Attempt to parse the new line as a regular message (with Sender: Message syntax)
+        const match = line.match(messageRegex);
+        if (match) {
+          const dateStr = match[1];
+          const timeStr = match[2];
+          const sender = match[3] ? match[3].trim() : null;
+          const message = match[4] || "";
           
-          const timestamp = parseDateTime(dateStr, timeStr, format);
-          
-          parsedMessages.push({
-            dateStr,
-            timeStr,
-            timestamp,
-            sender,
-            message
-          });
+          if (sender) {
+            const timestamp = parseDateTime(dateStr, timeStr, format);
+            currentMessage = {
+              dateStr,
+              timeStr,
+              timestamp,
+              sender,
+              message
+            };
+          }
         }
       } else {
-        if (parsedMessages.length > 0) {
-          parsedMessages[parsedMessages.length - 1].message += '\n' + line;
+        // Continuation line of the previous message
+        if (currentMessage) {
+          currentMessage.message += '\n' + line;
+        }
+      }
+    }
+    
+    // Push the final remaining message if present
+    if (currentMessage) {
+      parsedMessages.push(currentMessage);
+    }
+    
+    // Normalize phone number senders to prevent duplicate users arising from country codes or formatting variations
+    const phoneMap = new Map();
+    const phoneRegex = /^\+?[\d\s()+-]{7,25}$/;
+    
+    for (const msg of parsedMessages) {
+      if (msg.sender && phoneRegex.test(msg.sender)) {
+        const digits = msg.sender.replace(/\D/g, '');
+        if (digits.length >= 7) {
+          const key = digits.slice(-10); // Match last 10 digits to merge varying country codes/prefixes
+          const currentBest = phoneMap.get(key);
+          // Prefer the format with formatting symbols/parentheses as the final display name
+          if (!currentBest || msg.sender.length > currentBest.length) {
+            phoneMap.set(key, msg.sender);
+          }
+        }
+      }
+    }
+    
+    for (const msg of parsedMessages) {
+      if (msg.sender && phoneRegex.test(msg.sender)) {
+        const digits = msg.sender.replace(/\D/g, '');
+        if (digits.length >= 7) {
+          const key = digits.slice(-10);
+          if (phoneMap.has(key)) {
+            msg.sender = phoneMap.get(key);
+          }
         }
       }
     }
@@ -174,10 +349,11 @@ self.onmessage = async (e) => {
     self.postMessage({ status: 'progress', progress: 75, message: 'Analyzing data and calculating metrics...' });
     
     // Sort messages chronologically by timestamp
-    parsedMessages.sort((a, b) => {
-      if (!a.timestamp || !b.timestamp) return 0;
-      return a.timestamp.getTime() - b.timestamp.getTime();
-    });
+    // Filter out messages that do not have a valid timestamp or sender
+    parsedMessages = parsedMessages.filter(msg => msg.sender && msg.timestamp && !isNaN(msg.timestamp.getTime()));
+    
+    // Sort messages chronologically by timestamp
+    parsedMessages.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
     
     // 1. Total Messages
     const totalMessages = parsedMessages.length;
@@ -413,40 +589,20 @@ self.onmessage = async (e) => {
 
     for (const msg of parsedMessages) {
       const cleanMsg = msg.message.toLowerCase();
-      const isMedia = msg.message.includes("<Media omitted>") || 
-                      msg.message.includes("image omitted") || 
-                      msg.message.includes("video omitted") || 
-                      msg.message.includes("sticker omitted") || 
-                      msg.message.includes("audio omitted") ||
-                      msg.message.includes("voice omitted") ||
-                      cleanMsg.includes("media omitted") ||
-                      msg.message.includes("gif omitted") ||
-                      msg.message.includes("GIF omitted") ||
-                      msg.message.includes("sticker (file attached)") ||
-                      msg.message.includes("GIF (file attached)") ||
-                      msg.message.includes("gif (file attached)") ||
-                      msg.message.includes("[sticker]") ||
-                      cleanMsg.includes("sticker") ||
-                      cleanMsg.includes("gif");
+      const isMedia = mediaOmittedRegex.test(cleanMsg) || 
+                      attachmentRegex.test(cleanMsg) || 
+                      customPlaceholderRegex.test(cleanMsg) ||
+                      pureFilenameRegex.test(cleanMsg);
 
       if (isMedia) {
         mediaCounts[msg.sender] = (mediaCounts[msg.sender] || 0) + 1;
       }
 
       // Check specifically if sticker
-      const isSticker = msg.message.includes("sticker omitted") || 
-                        msg.message.includes("sticker (file attached)") ||
-                        msg.message.includes("[sticker]") ||
-                        cleanMsg.includes("sticker") ||
-                        (msg.message.includes("<attached:") && cleanMsg.includes(".webp"));
+      const isSticker = isMedia && (cleanMsg.includes("sticker") || cleanMsg.includes(".webp"));
 
       // Check specifically if GIF
-      const isGif = msg.message.includes("GIF omitted") || 
-                    msg.message.includes("gif omitted") ||
-                    msg.message.includes("GIF (file attached)") ||
-                    msg.message.includes("gif (file attached)") ||
-                    cleanMsg.includes("gif") ||
-                    (msg.message.includes("<attached:") && cleanMsg.includes(".gif"));
+      const isGif = isMedia && (cleanMsg.includes("gif") || cleanMsg.includes(".gif"));
 
       if (isSticker) {
         stickerCounts[msg.sender] = (stickerCounts[msg.sender] || 0) + 1;
@@ -554,19 +710,20 @@ self.onmessage = async (e) => {
 
     for (const msg of parsedMessages) {
       const cleanMsg = msg.message.toLowerCase();
-      const isMedia = msg.message.includes("<Media omitted>") || 
-                      msg.message.includes("image omitted") || 
-                      msg.message.includes("video omitted") || 
-                      msg.message.includes("sticker omitted") || 
-                      msg.message.includes("audio omitted") ||
-                      msg.message.includes("voice omitted") ||
-                      cleanMsg.includes("media omitted");
+      const isMedia = mediaOmittedRegex.test(cleanMsg) || 
+                      attachmentRegex.test(cleanMsg) || 
+                      customPlaceholderRegex.test(cleanMsg) ||
+                      pureFilenameRegex.test(cleanMsg);
       if (isMedia) continue;
+      if (deletedMessageRegex.test(cleanMsg)) continue;
 
-      const rawWords = cleanMsg.split(/\s+/);
+      const rawWords = cleanMsg.replace(urlRegex, '').split(/\s+/);
       for (const rawWord of rawWords) {
-        const cleanWord = rawWord.replace(/[.,/#!$%^&*;:{}=\-_`~()?"'’]/g, "").trim();
-        if (cleanWord.length >= 3 && !/^\d+$/.test(cleanWord) && !stopWords.has(cleanWord)) {
+        const cleanWord = rawWord.replace(/[.,/#!$%^&*<>:|;:{}=\-_`~()?"'’]/g, "").trim();
+        if (isMediaFilenameOrExtension(rawWord, cleanWord)) continue;
+        
+        const lowerWord = cleanWord.toLowerCase();
+        if (cleanWord.length >= 3 && !/^\d+$/.test(cleanWord) && !stopWords.has(lowerWord) && !codingKeywords.has(lowerWord)) {
           if (wordCountsPerSender[msg.sender]) {
             wordCountsPerSender[msg.sender][cleanWord] = (wordCountsPerSender[msg.sender][cleanWord] || 0) + 1;
           }
@@ -629,26 +786,30 @@ self.onmessage = async (e) => {
       if (prev.sender !== curr.sender && prev.timestamp && curr.timestamp) {
         const gap = curr.timestamp.getTime() - prev.timestamp.getTime();
         
-        if (gap > maxGapMs && gap > 0) {
-          maxGapMs = gap;
-          
-          const options = { 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric',
-            hour: '2-digit', 
-            minute: '2-digit'
-          };
-          
-          ghosterData = {
-            gapMs: gap,
-            senderA: prev.sender, // Left waiting
-            senderB: curr.sender, // Took a long time to reply
-            messageA: prev.message.substring(0, 100) + (prev.message.length > 100 ? '...' : ''),
-            messageB: curr.message.substring(0, 100) + (curr.message.length > 100 ? '...' : ''),
-            timestampA: prev.timestamp.toLocaleString('en-US', options),
-            timestampB: curr.timestamp.toLocaleString('en-US', options),
-          };
+        // Dead Chat Fallacy: Gaps larger than 48 hours represent a dead conversation resurrected,
+        // rather than a slow reply. We cap the reply gap at 48 hours to filter these out.
+        if (gap <= 48 * 60 * 60 * 1000) {
+          if (gap > maxGapMs && gap > 0) {
+            maxGapMs = gap;
+            
+            const options = { 
+              year: 'numeric', 
+              month: 'short', 
+              day: 'numeric',
+              hour: '2-digit', 
+              minute: '2-digit'
+            };
+            
+            ghosterData = {
+              gapMs: gap,
+              senderA: prev.sender, // Left waiting
+              senderB: curr.sender, // Took a long time to reply
+              messageA: prev.message.substring(0, 100) + (prev.message.length > 100 ? '...' : ''),
+              messageB: curr.message.substring(0, 100) + (curr.message.length > 100 ? '...' : ''),
+              timestampA: prev.timestamp.toLocaleString('en-US', options),
+              timestampB: curr.timestamp.toLocaleString('en-US', options),
+            };
+          }
         }
       }
     }
@@ -671,6 +832,7 @@ self.onmessage = async (e) => {
     const monthWordCounts = Array.from({ length: 12 }, () => ({}));
     
     // 17. Dry Spell
+    let maxDrySpellDays = 0;
     let maxDrySpellMs = 0;
     let drySpellStart = null;
     let drySpellEnd = null;
@@ -728,41 +890,18 @@ self.onmessage = async (e) => {
       }
       dailyMessages[dateKey].count++;
       
-      const cleanMsgText = msg.message.toLowerCase();
-      const isMediaPlaceholder = msg.message.includes("<Media omitted>") || 
-                                 msg.message.includes("image omitted") || 
-                                 msg.message.includes("video omitted") || 
-                                 msg.message.includes("sticker omitted") || 
-                                 msg.message.includes("audio omitted") ||
-                                 msg.message.includes("voice omitted") ||
-                                 cleanMsgText.includes("media omitted") ||
-                                 msg.message.includes("gif omitted") ||
-                                 msg.message.includes("sticker (file attached)") ||
-                                 msg.message.includes("gif (file attached)");
+      const cleanMsg = msg.message.toLowerCase();
+      const isMedia = mediaOmittedRegex.test(cleanMsg) || 
+                      attachmentRegex.test(cleanMsg) || 
+                      customPlaceholderRegex.test(cleanMsg) ||
+                      pureFilenameRegex.test(cleanMsg);
                                  
-      if (!isMediaPlaceholder && msg.message.trim().length > 4 && msg.message.trim().length < 120 && !msg.message.includes("joined") && !msg.message.includes("left")) {
+      if (!isMedia && msg.message.trim().length > 4 && msg.message.trim().length < 120 && !msg.message.includes("joined") && !msg.message.includes("left")) {
         dailyMessages[dateKey].messages.push({
           sender: msg.sender,
           message: msg.message.trim()
         });
       }
-      
-      const cleanMsg = msg.message.toLowerCase();
-      const isMedia = msg.message.includes("<Media omitted>") || 
-                      msg.message.includes("image omitted") || 
-                      msg.message.includes("video omitted") || 
-                      msg.message.includes("sticker omitted") || 
-                      msg.message.includes("audio omitted") ||
-                      msg.message.includes("voice omitted") ||
-                      cleanMsg.includes("media omitted") ||
-                      msg.message.includes("gif omitted") ||
-                      msg.message.includes("GIF omitted") ||
-                      msg.message.includes("sticker (file attached)") ||
-                      msg.message.includes("GIF (file attached)") ||
-                      msg.message.includes("gif (file attached)") ||
-                      msg.message.includes("[sticker]") ||
-                      cleanMsg.includes("sticker") ||
-                      cleanMsg.includes("gif");
       
       if (isMedia) {
         mediaMsgCounts[msg.sender] = (mediaMsgCounts[msg.sender] || 0) + 1;
@@ -771,20 +910,23 @@ self.onmessage = async (e) => {
         textCharCounts[msg.sender] = (textCharCounts[msg.sender] || 0) + msg.message.length;
       }
       
-      if (!isMedia && msg.message) {
-        const rawWords = cleanMsg.split(/\s+/);
+      if (!isMedia && msg.message && !deletedMessageRegex.test(cleanMsg)) {
+        const rawWords = cleanMsg.replace(urlRegex, '').split(/\s+/);
         for (const rawWord of rawWords) {
-          const cleanWord = rawWord.replace(/[.,/#!$%^&*;:{}=\-_`~()?"'’]/g, "").trim();
-          if (cleanWord.length > 0) {
-            if (slangWords.has(cleanWord)) {
+          const cleanWord = rawWord.replace(/[.,/#!$%^&*<>:|;:{}=\-_`~()?"'’]/g, "").trim();
+          if (isMediaFilenameOrExtension(rawWord, cleanWord)) continue;
+          
+          const lowerWord = cleanWord.toLowerCase();
+          if (cleanWord.length > 0 && !codingKeywords.has(lowerWord)) {
+            if (slangWords.has(lowerWord)) {
               slangCounts[msg.sender] = (slangCounts[msg.sender] || 0) + 1;
             }
-            if (corporateWords.has(cleanWord)) {
+            if (corporateWords.has(lowerWord)) {
               corporateCounts[msg.sender] = (corporateCounts[msg.sender] || 0) + 1;
             }
             
             const monthIdx = msg.timestamp.getMonth();
-            if (cleanWord.length >= 4 && !/^\d+$/.test(cleanWord) && !stopWords.has(cleanWord)) {
+            if (cleanWord.length >= 4 && !/^\d+$/.test(cleanWord) && !stopWords.has(lowerWord)) {
               monthWordCounts[monthIdx][cleanWord] = (monthWordCounts[monthIdx][cleanWord] || 0) + 1;
             }
           }
@@ -810,7 +952,13 @@ self.onmessage = async (e) => {
             resuscitationCounts[msg.sender] = (resuscitationCounts[msg.sender] || 0) + 1;
           }
           
-          if (gap > maxDrySpellMs) {
+          // Calculate calendar day difference to get accurate silent days count (excluding active boundary days)
+          const d1 = new Date(prev.timestamp.getFullYear(), prev.timestamp.getMonth(), prev.timestamp.getDate());
+          const d2 = new Date(msg.timestamp.getFullYear(), msg.timestamp.getMonth(), msg.timestamp.getDate());
+          const gapDays = Math.max(0, Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24)) - 1);
+          
+          if (gapDays > maxDrySpellDays) {
+            maxDrySpellDays = gapDays;
             maxDrySpellMs = gap;
             drySpellStart = prev.timestamp;
             drySpellEnd = msg.timestamp;
@@ -955,6 +1103,111 @@ self.onmessage = async (e) => {
       });
     }
 
+    // 17. Code Spammer Detection (Dynamic Slide stats)
+    let totalCodeMessages = 0;
+    let totalLinesOfCode = 0;
+    const codeMessagesPerSender = {};
+    const linesOfCodePerSender = {};
+    const languageCounts = {};
+
+    function detectCodeMessage(message) {
+      if (!message) return false;
+      
+      if (message.includes("```")) {
+        return true;
+      }
+      
+      const lines = message.split('\n');
+      let codeLineCount = 0;
+      
+      const codeIndicators = [
+        /^\s*(const|let|var|function|class|import|export|return|def|if|for|while)\b/,
+        /[{}()[\]]{3,}/,
+        /[;{}]$/,
+        /^\s*<[a-zA-Z]+(>|\s)/,
+        /<\/?[a-zA-Z]+>/,
+        /=>/,
+        /\b(console\.log|print|printf)\(/,
+        /\b(std::cout|System\.out\.println)\b/
+      ];
+      
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        
+        for (const regex of codeIndicators) {
+          if (regex.test(trimmed)) {
+            codeLineCount++;
+            break;
+          }
+        }
+      }
+      
+      const nonEmptyLines = lines.filter(l => l.trim()).length;
+      if (nonEmptyLines > 0 && (codeLineCount >= 2 || (codeLineCount / nonEmptyLines) >= 0.4)) {
+        return true;
+      }
+      
+      return false;
+    }
+
+    function inferCodeLanguage(message) {
+      const lower = message.toLowerCase();
+      if (lower.includes('import react') || lower.includes('jsx') || lower.includes('const ') && (lower.includes('=>') || lower.includes('console.log'))) {
+        return 'JavaScript/React';
+      }
+      if (lower.includes('def ') || lower.includes('elif ') || lower.includes('import ') && lower.includes('print(') || lower.includes('self.')) {
+        return 'Python';
+      }
+      if (lower.includes('<div') || lower.includes('class=') || lower.includes('href=') || lower.includes('</html>')) {
+        return 'HTML/CSS';
+      }
+      if (lower.includes('public static void main') || lower.includes('system.out.print')) {
+        return 'Java';
+      }
+      if (lower.includes('std::cout') || lower.includes('#include <')) {
+        return 'C++';
+      }
+      if (lower.includes('select ') && lower.includes('from ') && lower.includes('where ')) {
+        return 'SQL';
+      }
+      return 'Generic Code';
+    }
+
+    for (const msg of parsedMessages) {
+      if (detectCodeMessage(msg.message)) {
+        totalCodeMessages++;
+        const lineCount = msg.message.split('\n').filter(l => l.trim()).length;
+        totalLinesOfCode += lineCount;
+        
+        codeMessagesPerSender[msg.sender] = (codeMessagesPerSender[msg.sender] || 0) + 1;
+        linesOfCodePerSender[msg.sender] = (linesOfCodePerSender[msg.sender] || 0) + lineCount;
+        
+        const lang = inferCodeLanguage(msg.message);
+        if (lang !== 'Generic Code') {
+          languageCounts[lang] = (languageCounts[lang] || 0) + 1;
+        }
+      }
+    }
+
+    let topLanguage = 'Programming Code';
+    let maxLangCount = -1;
+    for (const [lang, count] of Object.entries(languageCounts)) {
+      if (count > maxLangCount) {
+        maxLangCount = count;
+        topLanguage = lang;
+      }
+    }
+
+    let topCodeSpammerName = 'N/A';
+    let maxCodeMessages = 0;
+    for (const [name, count] of Object.entries(codeMessagesPerSender)) {
+      if (count > maxCodeMessages) {
+        maxCodeMessages = count;
+        topCodeSpammerName = name;
+      }
+    }
+
     // Gather final metrics payload
     const result = {
       totalMessages,
@@ -995,16 +1248,25 @@ self.onmessage = async (e) => {
       resuscitationCounts,
       panicCounts,
       hyperFixation: hyperFixationWord ? { word: hyperFixationWord, monthName: hyperFixationMonth, count: hyperFixationCount } : null,
-      drySpell: maxDrySpellMs > 0 ? {
+      drySpell: maxDrySpellDays > 0 ? {
         gapMs: maxDrySpellMs,
         startDate: drySpellStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         endDate: drySpellEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        days: Math.round(maxDrySpellMs / (1000 * 60 * 60 * 24))
+        days: maxDrySpellDays
       } : null,
       mediaRatios,
       medianResponseTimes,
       notificationBombs,
-      monthlyTimeline
+      monthlyTimeline,
+      codeStats: {
+        hasCode: totalCodeMessages >= 3,
+        totalCodeMessages,
+        totalLinesOfCode,
+        topLanguage,
+        codeMessagesPerSender,
+        linesOfCodePerSender,
+        topCodeSpammer: { name: topCodeSpammerName, count: maxCodeMessages }
+      }
     };
     
     self.postMessage({ status: 'success', result });
