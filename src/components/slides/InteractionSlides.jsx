@@ -923,6 +923,8 @@ export function ChatCPRSlide({
   staggerContainer,
   slideFadeUp
 }) {
+  const totalCPRs = Object.values(results.resuscitationCounts || {}).reduce((a, b) => a + b, 0) || 1;
+
   if (isExport) {
     return (
       <div className="flex flex-col justify-between h-full py-12 text-left w-full">
@@ -947,12 +949,19 @@ export function ChatCPRSlide({
             TOTAL RESUSCITATIONS (24H+ SILENCE)
           </div>
           <div className="space-y-6">
-            {results.sendersList.slice(0, 3).map((sender) => {
+            {results.sendersList.slice(0, 3).map((sender, idx) => {
               const count = results.resuscitationCounts[sender] || 0;
+              const pct = Math.round((count / totalCPRs) * 100);
+              const barColors = ['bg-[#059669]', 'bg-[#E95D3C]', 'bg-[#0066FF]'];
               return (
-                <div key={sender} className="flex justify-between items-center text-2xl font-semibold text-neutral-800 border-b pb-4 border-neutral-100">
-                  <span className="truncate max-w-[450px]">{sender}</span>
-                  <span className="font-mono text-xl font-bold text-emerald-600">{count} CPRs</span>
+                <div key={sender} className="space-y-2 border-b pb-4 border-neutral-100 last:border-0 last:pb-0">
+                  <div className="flex justify-between text-2xl font-semibold text-neutral-800">
+                    <span className="truncate max-w-[450px]">{sender}</span>
+                    <span className="font-mono text-xl font-bold text-[#059669]">{count} CPRs ({pct}%)</span>
+                  </div>
+                  <div className="h-4 w-full bg-neutral-100 rounded-full overflow-hidden">
+                    <div className={`h-full ${barColors[idx] || 'bg-neutral-400'}`} style={{ width: `${pct}%` }} />
+                  </div>
                 </div>
               );
             })}
@@ -992,13 +1001,20 @@ export function ChatCPRSlide({
           className="bg-white/80 backdrop-blur-md border border-white/40 rounded-2xl p-4 shadow-sm space-y-3"
         >
           <span className="text-[10px] font-mono tracking-wider text-neutral-500 font-bold uppercase">CPRS PERFORMED (24H+ SILENCE)</span>
-          <div className="space-y-2.5">
-            {results.sendersList.slice(0, 3).map((sender) => {
+          <div className="space-y-3">
+            {results.sendersList.slice(0, 3).map((sender, idx) => {
               const count = results.resuscitationCounts[sender] || 0;
+              const pct = Math.round((count / totalCPRs) * 100);
+              const barColors = ['bg-[#059669]', 'bg-[#E95D3C]', 'bg-[#0066FF]'];
               return (
-                <div key={sender} className="flex justify-between items-center text-xs font-semibold text-neutral-800">
-                  <span className="truncate max-w-[150px]">{sender}</span>
-                  <span className="font-mono text-emerald-600 font-bold">{count} resuscitations</span>
+                <div key={sender} className="space-y-1">
+                  <div className="flex justify-between text-xs font-semibold text-neutral-800">
+                    <span className="truncate max-w-[150px]">{sender}</span>
+                    <span className="font-mono text-[#059669] font-bold">{count} ({pct}%)</span>
+                  </div>
+                  <div className="h-2 w-full bg-neutral-100 rounded-full overflow-hidden">
+                    <div className={`h-full ${barColors[idx] || 'bg-neutral-400'} transition-all`} style={{ width: `${pct}%` }} />
+                  </div>
                 </div>
               );
             })}
