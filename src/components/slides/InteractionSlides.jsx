@@ -16,17 +16,23 @@ export function YapperSlide({
           <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
             You amplified others' ideas, but someone usually took the stage.
           </p>
-          <p className="text-xl font-bold text-[#8B5CF6]/90 mt-2 leading-relaxed">
+          <p className="text-xl font-bold mt-2 leading-relaxed" style={{ color: 'rgba(139, 92, 246, 0.9)' }}>
             Verdict: {results.yapper.name} has enough daily monologues to publish a best-selling trilogy.
           </p>
         </div>
 
         <div className="relative w-full h-[700px] my-auto">
           {/* Decorative black bubble */}
-          <div className="w-[330px] h-[250px] bg-[#1C1A17]/8 border border-[#1C1A17]/10 rounded-[70px] absolute right-[100px] bottom-[150px] shadow-md transform rotate-[-6deg]" />
+          <div
+            className="w-[330px] h-[250px] border rounded-[70px] absolute right-[100px] bottom-[150px] shadow-md transform rotate-[-6deg]"
+            style={{ backgroundColor: 'rgba(28, 26, 23, 0.08)', borderColor: 'rgba(28, 26, 23, 0.1)' }}
+          />
 
           {/* Decorative blue bubble */}
-          <div className="w-[360px] h-[280px] bg-[#0066FF]/10 border border-[#0066FF]/15 rounded-[80px] absolute left-[100px] bottom-[50px] shadow-md transform rotate-[4deg]" />
+          <div
+            className="w-[360px] h-[280px] border rounded-[80px] absolute left-[100px] bottom-[50px] shadow-md transform rotate-[4deg]"
+            style={{ backgroundColor: 'rgba(0, 102, 255, 0.1)', borderColor: 'rgba(0, 102, 255, 0.15)' }}
+          />
 
           {/* Green bubble */}
           <div className="absolute right-[50px] top-0 w-[420px] h-[300px] bg-[#224535] text-white rounded-[90px] p-8 flex flex-col justify-center items-center shadow-2xl z-20">
@@ -76,13 +82,9 @@ export function YapperSlide({
       </motion.div>
 
       <div className="relative w-full h-[280px] my-auto">
-        {/* Decorative black bubble (behind) */}
         <div className="w-[110px] h-[85px] bg-[#1C1A17]/8 border border-[#1C1A17]/10 rounded-[24px] absolute right-6 bottom-16 shadow-sm transform rotate-[-6deg]" />
-
-        {/* Decorative blue bubble (behind) */}
         <div className="w-[125px] h-[95px] bg-[#0066FF]/10 border border-[#0066FF]/15 rounded-[28px] absolute left-6 bottom-4 shadow-sm transform rotate-[4deg]" />
 
-        {/* Green bubble (top right) */}
         <motion.div
           variants={slideFadeUp}
           className="absolute right-2 top-0 w-[140px] h-[105px] bg-[#224535] text-white rounded-[30px] p-3 flex flex-col justify-center items-center shadow-xl border border-white/5 z-20"
@@ -95,7 +97,6 @@ export function YapperSlide({
           </span>
         </motion.div>
 
-        {/* Orange bubble (mid left) */}
         <motion.div
           variants={slideFadeUp}
           className="absolute left-2 top-10 w-[145px] h-[110px] bg-[#E95D3C] text-white rounded-[32px] p-3 flex flex-col justify-center items-center shadow-xl border border-white/5 z-20"
@@ -138,7 +139,7 @@ export function GhosterSlide({
             Beyond a quick reply, your longest wait was...
           </p>
           {results.theGhoster && (
-            <p className="text-xl font-bold text-[#8B5CF6]/90 mt-2 leading-relaxed">
+            <p className="text-xl font-bold mt-2 leading-relaxed" style={{ color: 'rgba(139, 92, 246, 0.9)' }}>
               Verdict: {ghostWinner} treats chat notifications like optional terms-of-service agreements.
             </p>
           )}
@@ -146,7 +147,6 @@ export function GhosterSlide({
 
         {results.theGhoster ? (
           <div className="my-auto space-y-12 w-full">
-            {/* Central White Card */}
             <div className="bg-white rounded-[60px] p-12 shadow-2xl border border-neutral-100 flex flex-col items-center justify-center gap-4 relative z-20 w-[600px] mx-auto">
               <svg className="w-20 h-20 text-[#E95D3C]" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
@@ -160,8 +160,10 @@ export function GhosterSlide({
               </p>
             </div>
 
-            {/* Snippet */}
-            <div className="border-l-4 pl-8 py-4 space-y-4 rounded-r-[36px] bg-white/70 shadow-md border-[#E95D3C] max-w-[650px] mx-auto w-full">
+            <div
+              className="border-l-4 pl-8 py-4 space-y-4 rounded-r-[36px] shadow-md border-[#E95D3C] max-w-[650px] mx-auto w-full"
+              style={{ backgroundColor: 'rgba(255, 255, 255, 0.7)' }}
+            >
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wider font-mono text-neutral-500">
                   {results.theGhoster.senderA} • {results.theGhoster.timestampA}
@@ -211,7 +213,6 @@ export function GhosterSlide({
 
       {results.theGhoster ? (
         <div className="my-auto space-y-4 w-full">
-          {/* Central White Card */}
           <motion.div
             variants={slideFadeUp}
             className="bg-white rounded-[24px] p-5 shadow-xl border border-neutral-100 flex flex-col items-center justify-center gap-1.5 relative z-20 w-[240px] mx-auto"
@@ -219,7 +220,6 @@ export function GhosterSlide({
             <svg className="w-8 h-8 text-[#E95D3C]" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
             </svg>
-
             <h4 className="font-sans text-2xl font-extrabold tracking-tight text-neutral-900 leading-none text-center">
               {formatDuration(results.theGhoster.gapMs)}
             </h4>
@@ -228,7 +228,6 @@ export function GhosterSlide({
             </p>
           </motion.div>
 
-          {/* Conversation Snippet */}
           <motion.div
             variants={slideFadeUp}
             className="border-l-2 pl-3 py-1 space-y-2 rounded-r-xl bg-white/70 shadow-sm border-[#E95D3C] max-w-[290px] mx-auto w-full"
@@ -291,19 +290,18 @@ export function SpeedRacerSlide({
       return tA < tB ? a : b;
     }, senders[0] || "Someone");
     const fastTime = times[fastReplier] || 0;
-    
+
     return (
       <div className="flex flex-col justify-between h-full py-12 text-left w-full">
         <div className="space-y-6">
           <p className="text-[44px] font-sans font-semibold leading-[1.2] max-w-[850px] text-neutral-800">
             The Response Hierarchy: Who is the Speed Racer and who is the Snail?
           </p>
-          <p className="text-[28px] font-bold text-[#8B5CF6]/90 mt-2 leading-relaxed max-w-[800px]">
+          <p className="text-[28px] font-bold mt-2 leading-relaxed max-w-[800px]" style={{ color: 'rgba(139, 92, 246, 0.9)' }}>
             Verdict: {fastReplier} replies at lightning speed, while others take business days.
           </p>
         </div>
 
-        {/* Hero time display */}
         <div className="flex items-center justify-center my-6">
           <div className="bg-[#1C3B24] text-white rounded-[50px] px-16 py-10 shadow-2xl flex flex-col items-center">
             <span className="text-[72px] font-sans font-extrabold tracking-tight leading-none">
@@ -315,7 +313,10 @@ export function SpeedRacerSlide({
           </div>
         </div>
 
-        <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-12 shadow-lg space-y-8 w-full max-w-[850px]">
+        <div
+          className="border-2 rounded-[40px] p-12 shadow-lg space-y-8 w-full max-w-[850px]"
+          style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderColor: 'rgba(255, 255, 255, 0.4)' }}
+        >
           <div className="text-[24px] font-mono tracking-wider text-neutral-500 font-bold uppercase">
             MEDIAN RESPONSE TIMES
           </div>
@@ -443,11 +444,14 @@ export function NotificationBomberSlide({
           <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
             The Phone Buzzer: Who triggers the most lock screen cascades?
           </p>
-          <p className="text-xl font-bold text-[#8B5CF6]/90 mt-2 leading-relaxed">
+          <p className="text-xl font-bold mt-2 leading-relaxed" style={{ color: 'rgba(139, 92, 246, 0.9)' }}>
             Verdict: {bomber}'s rapid-fire typing is the leading cause of phone battery drain.
           </p>
         </div>
-        <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-6 w-full my-auto max-w-[800px] mx-auto">
+        <div
+          className="border-2 rounded-[40px] p-10 shadow-lg space-y-6 w-full my-auto max-w-[800px] mx-auto"
+          style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderColor: 'rgba(255, 255, 255, 0.4)' }}
+        >
           <div className="text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
             NOTIFICATION BOMB CASCADES
           </div>
@@ -546,7 +550,7 @@ export function MidnightPhilosopherSlide({
           <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
             When the rest of the world went quiet, your chat kept going.
           </p>
-          <p className="text-xl font-bold text-[#8B5CF6]/90 mt-2 leading-relaxed">
+          <p className="text-xl font-bold mt-2 leading-relaxed" style={{ color: 'rgba(139, 92, 246, 0.9)' }}>
             Verdict: {nightOwl} needs to invest in a sleep schedule instead of debugging life at 3 AM.
           </p>
           <div className="space-y-0">
@@ -560,7 +564,10 @@ export function MidnightPhilosopherSlide({
         </div>
 
         {isGroup ? (
-          <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-8 w-full">
+          <div
+            className="border-2 rounded-[40px] p-10 shadow-lg space-y-8 w-full"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderColor: 'rgba(255, 255, 255, 0.4)' }}
+          >
             <div className="flex justify-between items-center text-xl font-mono tracking-wider text-indigo-600 font-bold uppercase">
               <span>MIDNIGHT CHATS SPLIT</span>
               <span className="text-indigo-600 font-bold">{results.totalMidnightMessages.toLocaleString()} texts</span>
@@ -570,7 +577,7 @@ export function MidnightPhilosopherSlide({
               {results.sendersList.slice(0, 3).map((sender, idx) => {
                 const count = results.midnightCounts[sender] || 0;
                 const pct = results.totalMidnightMessages > 0 ? Math.round((count / results.totalMidnightMessages) * 100) : 0;
-                const barColors = ['bg-indigo-600', 'bg-[#E95D3C]', 'bg-[#10B981]'];
+                const barColors = ['#4f46e5', '#E95D3C', '#10B981'];
 
                 return (
                   <div key={sender} className="space-y-2">
@@ -579,7 +586,7 @@ export function MidnightPhilosopherSlide({
                       <span className="font-mono text-base text-neutral-500 font-bold">{count.toLocaleString()} ({pct}%)</span>
                     </div>
                     <div className="h-4 w-full bg-neutral-100 rounded-full overflow-hidden">
-                      <div className={`h-full ${barColors[idx] || 'bg-neutral-400'}`} style={{ width: `${pct}%` }} />
+                      <div className="h-full" style={{ width: `${pct}%`, backgroundColor: barColors[idx] || '#9ca3af' }} />
                     </div>
                   </div>
                 );
@@ -587,7 +594,10 @@ export function MidnightPhilosopherSlide({
             </div>
           </div>
         ) : (
-          <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-8 w-full">
+          <div
+            className="border-2 rounded-[40px] p-10 shadow-lg space-y-8 w-full"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderColor: 'rgba(255, 255, 255, 0.4)' }}
+          >
             <div className="flex justify-between items-center text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
               <span>MIDNIGHT CHATS SPLIT</span>
               <span className="text-indigo-600 font-extrabold">{midPercentA}% vs {midPercentB}%</span>
@@ -733,7 +743,7 @@ export function InitiatorSlide({
           <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
             Starting a conversation after a block of silence takes initiative.
           </p>
-          <p className="text-xl font-bold text-[#8B5CF6]/90 mt-2 leading-relaxed">
+          <p className="text-xl font-bold mt-2 leading-relaxed" style={{ color: 'rgba(139, 92, 246, 0.9)' }}>
             Verdict: Without {chiefInitiator}, this chat would have been archived in early February.
           </p>
           <div className="space-y-0">
@@ -747,7 +757,10 @@ export function InitiatorSlide({
         </div>
 
         {isGroup ? (
-          <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-8 w-full">
+          <div
+            className="border-2 rounded-[40px] p-10 shadow-lg space-y-8 w-full"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderColor: 'rgba(255, 255, 255, 0.4)' }}
+          >
             <div className="flex justify-between items-center text-xl font-mono tracking-wider text-emerald-600 font-bold uppercase">
               <span>CONVERSATION STARTERS</span>
               <span className="text-emerald-600 font-bold">
@@ -760,7 +773,7 @@ export function InitiatorSlide({
                 const count = results.initiations[sender] || 0;
                 const totalInits = Object.values(results.initiations).reduce((a, b) => a + b, 0) || 1;
                 const pct = Math.round((count / totalInits) * 100);
-                const barColors = ['bg-emerald-600', 'bg-[#E95D3C]', 'bg-[#0066FF]'];
+                const barColors = ['#059669', '#E95D3C', '#0066FF'];
 
                 return (
                   <div key={sender} className="space-y-2">
@@ -769,7 +782,7 @@ export function InitiatorSlide({
                       <span className="font-mono text-base text-neutral-500 font-bold">{count.toLocaleString()} ({pct}%)</span>
                     </div>
                     <div className="h-4 w-full bg-neutral-100 rounded-full overflow-hidden">
-                      <div className={`h-full ${barColors[idx] || 'bg-neutral-400'}`} style={{ width: `${pct}%` }} />
+                      <div className="h-full" style={{ width: `${pct}%`, backgroundColor: barColors[idx] || '#9ca3af' }} />
                     </div>
                   </div>
                 );
@@ -777,7 +790,10 @@ export function InitiatorSlide({
             </div>
           </div>
         ) : (
-          <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-8 w-full">
+          <div
+            className="border-2 rounded-[40px] p-10 shadow-lg space-y-8 w-full"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderColor: 'rgba(255, 255, 255, 0.4)' }}
+          >
             <div className="flex justify-between items-center text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
               <span>CONVERSATION STARTERS</span>
               <span className="text-emerald-600 font-extrabold">{initPercentA}% vs {initPercentB}%</span>
@@ -917,13 +933,16 @@ export function ChatCPRSlide({
           {(() => {
             const resuscitator = results.sendersList.reduce((a, b) => (results.resuscitationCounts[a] || 0) > (results.resuscitationCounts[b] || 0) ? a : b, results.sendersList[0] || "Someone");
             return (
-              <p className="text-xl font-bold text-[#8B5CF6]/90 mt-2 leading-relaxed">
+              <p className="text-xl font-bold mt-2 leading-relaxed" style={{ color: 'rgba(139, 92, 246, 0.9)' }}>
                 Verdict: {resuscitator} is single-handedly keeping this conversation on life support.
               </p>
             );
           })()}
         </div>
-        <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg space-y-6 w-full my-auto">
+        <div
+          className="border-2 rounded-[40px] p-10 shadow-lg space-y-6 w-full my-auto"
+          style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderColor: 'rgba(255, 255, 255, 0.4)' }}
+        >
           <div className="text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
             TOTAL RESUSCITATIONS (24H+ SILENCE)
           </div>
@@ -1011,7 +1030,7 @@ export function DrySpellSlide({
             The Great Silence: What was your longest dry spell this year?
           </p>
           {results.drySpell && (
-            <p className="text-xl font-bold text-[#8B5CF6]/90 mt-2 leading-relaxed">
+            <p className="text-xl font-bold mt-2 leading-relaxed" style={{ color: 'rgba(139, 92, 246, 0.9)' }}>
               Verdict: You literally forgot each other existed for {results.drySpell.days} days. Nature was healing.
             </p>
           )}
@@ -1029,7 +1048,10 @@ export function DrySpellSlide({
           )}
         </div>
         {results.drySpell && (
-          <div className="bg-white/80 border-2 border-white/40 rounded-[40px] p-10 shadow-lg z-20 my-auto text-center w-full">
+          <div
+            className="border-2 rounded-[40px] p-10 shadow-lg z-20 my-auto text-center w-full"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderColor: 'rgba(255, 255, 255, 0.4)' }}
+          >
             <span className="text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase block mb-1">LONG TIME NO CHAT</span>
             <span className="font-sans font-bold text-neutral-800 text-4xl">
               {results.drySpell.startDate} — {results.drySpell.endDate}
