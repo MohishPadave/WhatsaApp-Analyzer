@@ -387,81 +387,84 @@ export function SummarySlide({
           </p>
         </div>
 
-        {/* Summary Table Card */}
-        <div className="border p-12 rounded-[45px] space-y-8 shadow-2xl w-[700px] relative overflow-hidden z-20" style={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', borderColor: 'rgba(0, 0, 0, 0.02)' }}>
-          <div className="absolute top-4 left-4 w-4 h-4 border-t border-l border-neutral-400" />
-          <div className="absolute top-4 right-4 w-4 h-4 border-t border-r border-neutral-400" />
-          <div className="absolute bottom-4 left-4 w-4 h-4 border-b border-l border-neutral-400" />
-          <div className="absolute bottom-4 right-4 w-4 h-4 border-b border-r border-neutral-400" />
+        {/* Summary Table Card Wrapper */}
+        <div className="w-full flex justify-center my-auto">
+          {/* Summary Table Card */}
+          <div className="border p-12 rounded-[45px] space-y-8 shadow-2xl w-[700px] relative overflow-hidden z-20" style={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', borderColor: 'rgba(0, 0, 0, 0.02)' }}>
+            <div className="absolute top-4 left-4 w-4 h-4 border-t border-l border-neutral-400" />
+            <div className="absolute top-4 right-4 w-4 h-4 border-t border-r border-neutral-400" />
+            <div className="absolute bottom-4 left-4 w-4 h-4 border-b border-l border-neutral-400" />
+            <div className="absolute bottom-4 right-4 w-4 h-4 border-b border-r border-neutral-400" />
 
-          <div className="text-center border-b pb-6" style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
-            <span className="font-serif italic text-3xl font-bold text-neutral-800">2026 Retro Summary</span>
-          </div>
-
-          <div className="space-y-5 text-lg text-neutral-700 font-sans">
-            <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
-              <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">MESSAGES</span>
-              <span className="font-mono font-bold text-neutral-800 text-2xl">{results.totalMessages.toLocaleString()}</span>
+            <div className="text-center border-b pb-6" style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
+              <span className="font-serif italic text-3xl font-bold text-neutral-800">2026 Retro Summary</span>
             </div>
 
-            <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
-              <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">DAYS TEXTING</span>
-              <span className="font-serif italic font-medium text-neutral-800 text-2xl">{results.longevityDays} Days</span>
-            </div>
-
-            {results.yapper?.count > 0 && results.yapper?.name && (
+            <div className="space-y-5 text-lg text-neutral-700 font-sans">
               <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
-                <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">👑 THE YAPPER</span>
-                <span className="font-serif font-medium text-neutral-800 text-2xl">{results.yapper.name}</span>
+                <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">MESSAGES</span>
+                <span className="font-mono font-bold text-neutral-800 text-2xl">{results.totalMessages.toLocaleString()}</span>
               </div>
-            )}
 
-            {results.theGhoster?.gapMs > 0 && (
               <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
-                <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">MAX REPLY GAP</span>
-                <span className="font-mono font-bold text-neutral-800 text-xl">
-                  {formatDuration(results.theGhoster.gapMs)}
+                <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">DAYS TEXTING</span>
+                <span className="font-serif italic font-medium text-neutral-800 text-2xl">{results.longevityDays} Days</span>
+              </div>
+
+              {results.yapper?.count > 0 && results.yapper?.name && (
+                <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
+                  <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">👑 THE YAPPER</span>
+                  <span className="font-serif font-medium text-neutral-800 text-2xl">{results.yapper.name}</span>
+                </div>
+              )}
+
+              {results.theGhoster?.gapMs > 0 && (
+                <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
+                  <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">MAX REPLY GAP</span>
+                  <span className="font-mono font-bold text-neutral-800 text-xl">
+                    {formatDuration(results.theGhoster.gapMs)}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
+                <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">PEAK HOUR</span>
+                <span className="font-serif text-xl font-medium text-neutral-800">{results.peakTraffic.text}</span>
+              </div>
+
+              {results.totalVoiceNotesCount > 0 && (
+                <>
+                  <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
+                    <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">🎙️ VOICE NOTES</span>
+                    <span className="font-mono font-bold text-neutral-800 text-2xl">
+                      {results.totalVoiceNotesCount} ({formatDuration(results.totalVoiceNotesDuration * 1000)})
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
+                    <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">👑 PODCASTER</span>
+                    <span className="font-serif font-medium text-neutral-800 text-2xl truncate max-w-[320px]">
+                      {results.topVoiceNoteSender?.name || 'N/A'} ({results.topVoiceNoteSender?.count} VNs)
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
+                    <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">⏱️ LONGEST VN</span>
+                    <span className="font-serif font-medium text-neutral-800 text-2xl truncate max-w-[320px]">
+                      {results.longestVoiceNote ? `${results.longestVoiceNote.name} (${formatDuration(results.longestVoiceNote.durationSec * 1000)})` : 'N/A'}
+                    </span>
+                  </div>
+                </>
+              )}
+
+              <div className="flex justify-between items-center">
+                <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">TOP EMOJIS</span>
+                <span className="flex gap-4 font-medium text-neutral-800 text-xl">
+                  <span>{senderA}: {results.emojiDependency[senderA]?.emoji || "❤️"}</span>
+                  <span>{senderB}: {results.emojiDependency[senderB]?.emoji || "❤️"}</span>
+                  {isGroup && senderC && <span>{senderC}: {results.emojiDependency[senderC]?.emoji || "❤️"}</span>}
                 </span>
               </div>
-            )}
-
-            <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
-              <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">PEAK HOUR</span>
-              <span className="font-serif text-xl font-medium text-neutral-800">{results.peakTraffic.text}</span>
-            </div>
-
-            {results.totalVoiceNotesCount > 0 && (
-              <>
-                <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
-                  <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">🎙️ VOICE NOTES</span>
-                  <span className="font-mono font-bold text-neutral-800 text-2xl">
-                    {results.totalVoiceNotesCount} ({formatDuration(results.totalVoiceNotesDuration * 1000)})
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
-                  <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">👑 PODCASTER</span>
-                  <span className="font-serif font-medium text-neutral-800 text-2xl truncate max-w-[320px]">
-                    {results.topVoiceNoteSender?.name || 'N/A'} ({results.topVoiceNoteSender?.count} VNs)
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center border-b pb-3 border-neutral-100">
-                  <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">⏱️ LONGEST VN</span>
-                  <span className="font-serif font-medium text-neutral-800 text-2xl truncate max-w-[320px]">
-                    {results.longestVoiceNote ? `${results.longestVoiceNote.name} (${formatDuration(results.longestVoiceNote.durationSec * 1000)})` : 'N/A'}
-                  </span>
-                </div>
-              </>
-            )}
-
-            <div className="flex justify-between items-center">
-              <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-bold">TOP EMOJIS</span>
-              <span className="flex gap-4 font-medium text-neutral-800 text-xl">
-                <span>{senderA}: {results.emojiDependency[senderA]?.emoji || "❤️"}</span>
-                <span>{senderB}: {results.emojiDependency[senderB]?.emoji || "❤️"}</span>
-                {isGroup && senderC && <span>{senderC}: {results.emojiDependency[senderC]?.emoji || "❤️"}</span>}
-              </span>
             </div>
           </div>
         </div>
