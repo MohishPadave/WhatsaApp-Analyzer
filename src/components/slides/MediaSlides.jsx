@@ -36,7 +36,6 @@ export function MediaMogulSlide({
           </div>
         </div>
 
-        {/* PDF Card Slide 11 */}
         {isGroup ? (
           <div className="rounded-[40px] p-10 shadow-lg space-y-8 w-full border-2" style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderColor: 'rgba(255, 255, 255, 0.4)' }}>
             <div className="flex justify-between items-center text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
@@ -242,6 +241,30 @@ export function TextMediaRatioSlide({
   staggerContainer,
   slideFadeUp
 }) {
+  // ─── FIX ──────────────────────────────────────────────────────────────────
+  // OLD: mediaRatios[sender] = each person's media % of their OWN messages.
+  //      e.g. Mohish 16% + Kshitij 7% = 23% (never adds to 100).
+  //
+  // NEW: share = each person's media count as % of ALL media sent by everyone.
+  //      e.g. Mohish 70% + Kshitij 30% = 100% always.
+  //
+  // We compute totalAllMedia once from mediaCounts (already in results) and
+  // derive each person's share from that — no worker changes needed.
+  // ──────────────────────────────────────────────────────────────────────────
+  const totalAllMedia = results.sendersList.reduce(
+    (sum, s) => sum + (results.mediaCounts?.[s] || 0), 0
+  ) || 1;
+
+  const getMediaShare = (sender) =>
+    Math.round(((results.mediaCounts?.[sender] || 0) / totalAllMedia) * 100);
+
+  // The "spammer" is still whoever has the highest per-own-messages ratio
+  // (mediaRatios) — that's still the most meaningful "who spams most" signal.
+  const spammer = results.sendersList.reduce(
+    (a, b) => (results.mediaRatios[a] || 0) > (results.mediaRatios[b] || 0) ? a : b,
+    results.sendersList[0] || "Someone"
+  );
+
   if (isExport) {
     return (
       <div className="flex flex-col justify-between h-full py-12 text-left w-full">
@@ -249,38 +272,36 @@ export function TextMediaRatioSlide({
           <p className="text-3xl font-sans font-medium leading-relaxed max-w-[800px] text-neutral-800">
             {isGroup ? "Who relies on stickers and attachments rather than typing?" : "The Media Spammer: Who communicates entirely in stickers and GIFs?"}
           </p>
-          {(() => {
-            const spammer = results.sendersList.reduce((a, b) => (results.mediaRatios[a] || 0) > (results.mediaRatios[b] || 0) ? a : b, results.sendersList[0] || "Someone");
-            return (
-              <p className="text-xl font-bold mt-2 leading-relaxed" style={{ color: 'rgba(139, 92, 246, 0.9)' }}>
-                Verdict: {spammer} prefers pixels over paragraphs. Why type when you can sticker?
-              </p>
-            );
-          })()}
+          <p className="text-xl font-bold mt-2 leading-relaxed" style={{ color: 'rgba(139, 92, 246, 0.9)' }}>
+            Verdict: {spammer} prefers pixels over paragraphs. Why type when you can sticker?
+          </p>
         </div>
+
         <div className="rounded-[40px] p-10 shadow-lg space-y-6 w-full my-auto border-2" style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderColor: 'rgba(255, 255, 255, 0.4)' }}>
           <div className="text-xl font-mono tracking-wider text-neutral-500 font-bold uppercase">
-            MEDIA-TO-TEXT RATIO
+            SHARE OF ALL MEDIA SENT
           </div>
           <div className="space-y-6">
             {results.sendersList.slice(0, 3).map((sender) => {
-              const ratio = results.mediaRatios[sender] || 0;
+              const share = getMediaShare(sender);
+              const count = results.mediaCounts?.[sender] || 0;
               return (
                 <div key={sender} className="space-y-2 border-b pb-4 border-neutral-100">
                   <div className="flex justify-between text-2xl font-semibold text-neutral-800">
                     <span className="truncate max-w-[450px]">{sender}</span>
-                    <span className="font-mono text-emerald-600 font-bold">{ratio}% media</span>
+                    <span className="font-mono text-emerald-600 font-bold">{share}% <span className="text-neutral-400 text-lg">({count.toLocaleString()} files)</span></span>
                   </div>
                   <div className="h-4 w-full bg-neutral-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500" style={{ width: `${ratio}%` }} />
+                    <div className="h-full bg-emerald-500" style={{ width: `${share}%` }} />
                   </div>
                 </div>
               );
             })}
           </div>
         </div>
+
         <p className="text-xl font-sans font-light leading-relaxed max-w-[800px] text-neutral-600">
-          Percentage of sent messages that contain media attachments rather than plain text.
+          Each person's share of all media files sent — bars always add up to 100%.
         </p>
       </div>
     );
@@ -297,14 +318,9 @@ export function TextMediaRatioSlide({
         <p className="text-[17px] font-sans font-medium leading-relaxed text-neutral-800 max-w-[280px]">
           {isGroup ? "Who relies on stickers and attachments rather than typing?" : "The Media Spammer: Who communicates entirely in stickers and GIFs?"}
         </p>
-        {(() => {
-          const spammer = results.sendersList.reduce((a, b) => (results.mediaRatios[a] || 0) > (results.mediaRatios[b] || 0) ? a : b, results.sendersList[0] || "Someone");
-          return (
-            <p className="text-[11px] font-bold text-[#8B5CF6]/90 mt-1 leading-snug">
-              Verdict: {spammer} prefers pixels over paragraphs. Why type when you can sticker?
-            </p>
-          );
-        })()}
+        <p className="text-[11px] font-bold text-[#8B5CF6]/90 mt-1 leading-snug">
+          Verdict: {spammer} prefers pixels over paragraphs. Why type when you can sticker?
+        </p>
       </motion.div>
 
       <div className="my-auto space-y-4 w-full z-20">
@@ -312,18 +328,19 @@ export function TextMediaRatioSlide({
           variants={slideFadeUp}
           className="bg-white/80 backdrop-blur-md border border-white/40 rounded-2xl p-4 shadow-sm space-y-3.5"
         >
-          <span className="text-[10px] font-mono tracking-wider text-neutral-500 font-bold uppercase">MEDIA TO TEXT RATIO</span>
+          <span className="text-[10px] font-mono tracking-wider text-neutral-500 font-bold uppercase">SHARE OF ALL MEDIA SENT</span>
           <div className="space-y-3">
             {results.sendersList.slice(0, 3).map((sender) => {
-              const ratio = results.mediaRatios[sender] || 0;
+              const share = getMediaShare(sender);
+              const count = results.mediaCounts?.[sender] || 0;
               return (
                 <div key={sender} className="space-y-1">
                   <div className="flex justify-between text-xs font-semibold text-neutral-800">
                     <span className="truncate max-w-[150px]">{sender}</span>
-                    <span className="font-mono text-emerald-600 font-bold">{ratio}% media</span>
+                    <span className="font-mono text-emerald-600 font-bold">{share}% <span className="text-neutral-400 font-normal">({count})</span></span>
                   </div>
                   <div className="h-2 w-full bg-neutral-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 transition-all" style={{ width: `${ratio}%` }} />
+                    <div className="h-full bg-emerald-500 transition-all" style={{ width: `${share}%` }} />
                   </div>
                 </div>
               );
@@ -336,7 +353,7 @@ export function TextMediaRatioSlide({
         variants={slideFadeUp}
         className="text-xs font-sans font-light text-neutral-600 leading-relaxed max-w-[290px] mb-8"
       >
-        Percentage of sent messages that contain media attachments rather than plain text.
+        Each person's share of all media sent — always adds up to 100%.
       </motion.p>
     </motion.div>
   );
@@ -371,7 +388,6 @@ export function VoiceNotesSlide({
           </div>
         </div>
 
-        {/* PDF Card Slide 13 */}
         {isGroup ? (
           <div className="rounded-[40px] p-10 shadow-lg space-y-8 w-full border-2" style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderColor: 'rgba(255, 255, 255, 0.4)' }}>
             <div className="flex justify-between items-center text-xl font-mono tracking-wider text-purple-600 font-bold uppercase">
